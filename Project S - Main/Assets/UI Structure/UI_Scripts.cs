@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 
 public class UI_Scripts : MonoBehaviour
 {
-
-   public static void testUIScript()
+    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    void Start()
    // private void OnEnable()
     {
         //https://docs.unity3d.com/2020.1/Documentation/Manual/UIE-LoadingUXMLcsharp.html
@@ -18,6 +18,11 @@ public class UI_Scripts : MonoBehaviour
         VisualTreeAsset startMenuUIAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI Structure/UI-Home.uxml");
      
         VisualElement startMenuUI = startMenuUIAsset.CloneTree();
+
+        var optionsButton = startMenuUI.Q<Button>("OptionsButton");
+        optionsButton.RegisterCallback<MouseUpEvent>(
+            evt => Debug.Log("Test UI Script Button Handler Log") //evt.StopPropagation()
+        );
 
         //VisualElement ui = uiAsset.CloneTree(null);
         //.rootVisualElement.Add(ui);
