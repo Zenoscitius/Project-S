@@ -10,7 +10,7 @@ public class CubeRotate : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        Debug.Log("Initialize CubeRotate!");
     }
 
     // Update is called once per frame
