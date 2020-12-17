@@ -8,12 +8,19 @@ public class StartMenuScripts : MonoBehaviour
 {
     // Start is called before the first frame update
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    //void Start()
-    void OnEnable()
+    void Start()
+    //void OnEnable()
     {
         //https://docs.unity3d.com/2020.1/Documentation/Manual/UIE-LoadingUXMLcsharp.html
 
         Debug.Log("Test UI Script Console Log" );
+
+        /*So it is clearly traversing the tree properly, but it is saying its screenspace box basically doesnt exist; 
+         * Unclear if I am doing something wrong OR if the preview build doesnt have the ability to do runtime bindings or something
+         * 
+         * 
+         * 
+         * */
 
         VisualTreeAsset startMenuUIAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI Structure/UI-Home.uxml");
 
@@ -37,17 +44,19 @@ public class StartMenuScripts : MonoBehaviour
             optionsButton.text = "cat!";
             //Debug.Log(optionsButton.text);
 
-            optionsButton.clicked += () => TestHandler(optionsButton.parent.name);
-            //Debug.Log(optionsButton.pickingMode);
-            //optionsButton.visible = false;
-            //optionsButton.RemoveFromHierarchy();
-            //startMenuUI.MarkDirtyRepaint();
+            optionsButton.clicked += () => {
+                Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!"); 
+            };
+        //Debug.Log(optionsButton.pickingMode);
+        //optionsButton.visible = false;
+        //optionsButton.RemoveFromHierarchy();
+        //startMenuUI.MarkDirtyRepaint();
 
-            //optionsButton.RegisterCallback<MouseEnterEvent>(ButtonHoverHandler, TrickleDown.Trickledown);
-            //optionsButton.RegisterCallback<MouseDownEvent>(ButtonHandler);
+        //optionsButton.RegisterCallback<MouseEnterEvent>(ButtonHoverHandler, TrickleDown.Trickledown);
+        //optionsButton.RegisterCallback<MouseDownEvent>(ButtonHandler);
             //optionsButton.RegisterCallback<ClickEvent>(ButtonHandler);
 
-            optionsButton.MarkDirtyRepaint();
+            //optionsButton.MarkDirtyRepaint();
 
         }
     }
