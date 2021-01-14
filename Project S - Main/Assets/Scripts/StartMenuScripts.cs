@@ -4,10 +4,40 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.UIElements;
 
+
 public class StartMenuScripts : MonoBehaviour
 {
     // Start is called before the first frame update
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+
+    private VisualElement startMenuUI;
+    //public CharacterController characterController;
+    private VisualTreeAsset startMenuUIAsset;
+
+    public void OnEnable()
+    {
+        //startMenuUIAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI Structure/UI-Home.uxml");
+        //startMenuUI = startMenuUIAsset.Instantiate();
+
+        startMenuUI = GetComponent<UIDocument>().rootVisualElement;
+        Debug.Log("startMenuUI:" + startMenuUI);
+
+        //playerStateImage = root.Q<VisualElement>("PlayerStateImage");
+
+        /*So it is clearly traversing the tree properly, but it is saying its screenspace box basically doesnt exist; 
+         * Unclear if I am doing something wrong OR if the preview build doesnt have the ability to do runtime bindings or something
+         * 
+         * 
+         * UPDATE: Appears to be that the cloned tree isnt treated as the same tree, so it doesnt count; Direct access seems to be the solution, despite being recommended against?
+         * */
+        //VisualElement startMenuUI = startMenuUIAsset;
+        //Debug.Log("startMenuUI: " + startMenuUI);
+        //Debug.Log("# children: " + startMenuUI.childCount ) ;
+        //Debug.Log("stylesheets: " + startMenuUI.styleSheets); 
+        // Debug.Log("resolvedStyle: " + startMenuUI.resolvedStyle);
+    }
+
+
     void Start()
     //void OnEnable()
     {
@@ -15,24 +45,10 @@ public class StartMenuScripts : MonoBehaviour
 
         Debug.Log("Test UI Script Console Log" );
 
-        /*So it is clearly traversing the tree properly, but it is saying its screenspace box basically doesnt exist; 
-         * Unclear if I am doing something wrong OR if the preview build doesnt have the ability to do runtime bindings or something
-         * 
-         * 
-         * 
-         * */
 
-        VisualTreeAsset startMenuUIAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI Structure/UI-Home.uxml");
 
-        VisualElement startMenuUI = startMenuUIAsset.Instantiate();
-        //VisualElement startMenuUI = startMenuUIAsset;
-
-        Debug.Log("startMenuUI: " + startMenuUI);
-        //Debug.Log("# children: " + startMenuUI.childCount ) ;
-        //Debug.Log("stylesheets: " + startMenuUI.styleSheets); 
-        Debug.Log("resolvedStyle: " + startMenuUI.resolvedStyle);
-
-        var optionsButton = startMenuUI.Q<Button>("OptionsButton");
+     
+        Button optionsButton = startMenuUI.Q<Button>("OptionsButton");
 
         if (optionsButton != null)
         {
@@ -40,20 +56,32 @@ public class StartMenuScripts : MonoBehaviour
       
             Debug.Log("options button found: " + optionsButton);
 
-            //Debug.Log(optionsButton.text);
-            optionsButton.text = "cat!";
-            //Debug.Log(optionsButton.text);
+            optionsButton.RegisterCallback<ClickEvent>(ButtonHandler); //works, mousedownevent doesnt for some reason;
 
-            optionsButton.clicked += () => {
-                Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!"); 
-            };
-        //Debug.Log(optionsButton.pickingMode);
-        //optionsButton.visible = false;
-        //optionsButton.RemoveFromHierarchy();
-        //startMenuUI.MarkDirtyRepaint();
+            //this method also works from: https://loglog.games/2020/09/27/unity-ui-toolkit-first-steps/
+            optionsButton.clickable = new Clickable(() => {
+               Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!");
 
-        //optionsButton.RegisterCallback<MouseEnterEvent>(ButtonHoverHandler, TrickleDown.Trickledown);
-        //optionsButton.RegisterCallback<MouseDownEvent>(ButtonHandler);
+               //Debug.Log(optionsButton.text);
+               //optionsButton.text = "cat!";
+               //Debug.Log(optionsButton.text);
+           });
+
+
+
+            //optionsButton.clicked += () => {
+            //    Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!"); 
+            //};
+
+
+
+            //Debug.Log(optionsButton.pickingMode);
+            //optionsButton.visible = false;
+            //optionsButton.RemoveFromHierarchy();
+            //startMenuUI.MarkDirtyRepaint();
+
+            //optionsButton.RegisterCallback<MouseEnterEvent>(ButtonHoverHandler, TrickleDown.Trickledown);
+
             //optionsButton.RegisterCallback<ClickEvent>(ButtonHandler);
 
             //optionsButton.MarkDirtyRepaint();
@@ -68,7 +96,7 @@ public class StartMenuScripts : MonoBehaviour
         //optionsButton.RegisterCallback<MouseDownEvent>(ButtonHandler);
     }
 
-    void ButtonHandler(MouseDownEvent evt)
+    void ButtonHandler(ClickEvent evt)
     //void ButtonHandler(ClickEvent evt)
     {
         Debug.Log("========Test UI Script BUTTON PRESS Log===========");
