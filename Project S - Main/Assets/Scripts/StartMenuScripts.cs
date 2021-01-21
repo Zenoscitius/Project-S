@@ -28,7 +28,6 @@ public class StartMenuScripts : MonoBehaviour
         /*So it is clearly traversing the tree properly, but it is saying its screenspace box basically doesnt exist; 
          * Unclear if I am doing something wrong OR if the preview build doesnt have the ability to do runtime bindings or something
          * 
-         * 
          * UPDATE: Appears to be that the cloned tree isnt treated as the same tree, so it doesnt count; Direct access seems to be the solution, despite being recommended against?
          * */
         //VisualElement startMenuUI = startMenuUIAsset;
@@ -54,17 +53,19 @@ public class StartMenuScripts : MonoBehaviour
       
             Debug.Log("options button found: " + optionsButton);
 
-            optionsButton.RegisterCallback<ClickEvent>(ButtonHandler, "mainMenuOptions"); //works, mousedownevent doesnt for some reason;
+            //https://docs.unity3d.com/Manual/UIE-Events-Handling.html
+            optionsButton.RegisterCallback<ClickEvent, string>(ButtonHandler, "mainMenuOptions"); //works, mousedownevent doesnt for some reason; , "mainMenuOptions"
 
             //this method also works from: https://loglog.games/2020/09/27/unity-ui-toolkit-first-steps/
-            optionsButton.clickable = new Clickable(() => {
-               Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!");
+            /* optionsButton.clickable = new Clickable(() => {
+                Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!");
 
-               //Debug.Log(optionsButton.text);
-               //optionsButton.text = "cat!";
-               //Debug.Log(optionsButton.text);
-           });
+                //Debug.Log(optionsButton.text);
+                //optionsButton.text = "cat!";
+                //Debug.Log(optionsButton.text);
+            });*/
 
+            //this is alleged to also work...
             //optionsButton.clicked += () => {
             //    Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!"); 
             //};
@@ -75,9 +76,7 @@ public class StartMenuScripts : MonoBehaviour
             //startMenuUI.MarkDirtyRepaint();
 
             //optionsButton.RegisterCallback<MouseEnterEvent>(ButtonHoverHandler, TrickleDown.Trickledown);
-
             //optionsButton.RegisterCallback<ClickEvent>(ButtonHandler);
-
             //optionsButton.MarkDirtyRepaint();
 
         }
@@ -90,10 +89,12 @@ public class StartMenuScripts : MonoBehaviour
         //optionsButton.RegisterCallback<MouseDownEvent>(ButtonHandler);
     }
 
-    void ButtonHandler(ClickEvent evt, string name)
+    void ButtonHandler(ClickEvent evt, string name) //, string name
     //void ButtonHandler(ClickEvent evt)
     {
-        Debug.Log("========Test UI Script BUTTON PRESS Log===========");
+        Debug.Log("========Test UI Script Click " +name+ " Log===========");
+
+
             //evt.StopPropagation();
     }
 
