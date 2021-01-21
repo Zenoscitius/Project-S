@@ -46,6 +46,9 @@ public class StartMenuScripts : MonoBehaviour
         Debug.Log("UI Script Start()" );
     
         Button optionsButton = startMenuUI.Q<Button>("OptionsButton");
+        Button newGameButton = startMenuUI.Q<Button>("NewGameButton");
+        Button exitButton = startMenuUI.Q<Button>("ExitButton");
+
 
         if (optionsButton != null)
         {
@@ -54,7 +57,7 @@ public class StartMenuScripts : MonoBehaviour
             Debug.Log("options button found: " + optionsButton);
 
             //https://docs.unity3d.com/Manual/UIE-Events-Handling.html
-            optionsButton.RegisterCallback<ClickEvent, string>(ButtonHandler, "mainMenuOptions"); //works, mousedownevent doesnt for some reason; , "mainMenuOptions"
+            optionsButton.RegisterCallback<ClickEvent, string>(ButtonHandler, "mainMenuOptions"); //works, mousedownevent doesnt for some reason; 
 
             //this method also works from: https://loglog.games/2020/09/27/unity-ui-toolkit-first-steps/
             /* optionsButton.clickable = new Clickable(() => {
@@ -89,7 +92,7 @@ public class StartMenuScripts : MonoBehaviour
         //optionsButton.RegisterCallback<MouseDownEvent>(ButtonHandler);
     }
 
-    void ButtonHandler(ClickEvent evt, string name) //, string name
+    void ButtonHandler(ClickEvent evt, string name) 
     //void ButtonHandler(ClickEvent evt)
     {
         Debug.Log("========Test UI Script Click " +name+ " Log===========");
