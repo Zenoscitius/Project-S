@@ -16,6 +16,7 @@ public class StartMenuScripts : MonoBehaviour
 
     public void OnEnable()
     {
+        Debug.Log("UI Script OnEnable()");
         //startMenuUIAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI Structure/UI-Home.uxml");
         //startMenuUI = startMenuUIAsset.Instantiate();
 
@@ -43,11 +44,8 @@ public class StartMenuScripts : MonoBehaviour
     {
         //https://docs.unity3d.com/2020.1/Documentation/Manual/UIE-LoadingUXMLcsharp.html
 
-        Debug.Log("Test UI Script Console Log" );
-
-
-
-     
+        Debug.Log("UI Script Start()" );
+    
         Button optionsButton = startMenuUI.Q<Button>("OptionsButton");
 
         if (optionsButton != null)
@@ -56,7 +54,7 @@ public class StartMenuScripts : MonoBehaviour
       
             Debug.Log("options button found: " + optionsButton);
 
-            optionsButton.RegisterCallback<ClickEvent>(ButtonHandler); //works, mousedownevent doesnt for some reason;
+            optionsButton.RegisterCallback<ClickEvent>(ButtonHandler, "mainMenuOptions"); //works, mousedownevent doesnt for some reason;
 
             //this method also works from: https://loglog.games/2020/09/27/unity-ui-toolkit-first-steps/
             optionsButton.clickable = new Clickable(() => {
@@ -67,13 +65,9 @@ public class StartMenuScripts : MonoBehaviour
                //Debug.Log(optionsButton.text);
            });
 
-
-
             //optionsButton.clicked += () => {
             //    Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!"); 
             //};
-
-
 
             //Debug.Log(optionsButton.pickingMode);
             //optionsButton.visible = false;
@@ -96,7 +90,7 @@ public class StartMenuScripts : MonoBehaviour
         //optionsButton.RegisterCallback<MouseDownEvent>(ButtonHandler);
     }
 
-    void ButtonHandler(ClickEvent evt)
+    void ButtonHandler(ClickEvent evt, string name)
     //void ButtonHandler(ClickEvent evt)
     {
         Debug.Log("========Test UI Script BUTTON PRESS Log===========");
