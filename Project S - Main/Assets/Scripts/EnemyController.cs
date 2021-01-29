@@ -45,6 +45,7 @@ public class EnemyController : MonoBehaviour
 
         rigidbody2D.MovePosition(position);
     }
+
     void OnCollisionEnter2D(Collision2D other)
     {
         LeviController player = other.gameObject.GetComponent<LeviController>();

@@ -2877,6 +2877,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bot
       objectReference: {fileID: 0}
+    - target: {fileID: 9056713595035368630, guid: 2c5749cb51b04234dac3c926d1824059, type: 3}
+      propertyPath: speed
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c5749cb51b04234dac3c926d1824059, type: 3}
 --- !u!1001 &1955184391082743505
