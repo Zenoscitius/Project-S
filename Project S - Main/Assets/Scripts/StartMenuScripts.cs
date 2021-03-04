@@ -44,9 +44,6 @@ public class StartMenuScripts : MonoBehaviour
         //https://docs.unity3d.com/2020.1/Documentation/Manual/UIE-LoadingUXMLcsharp.html
 
         Debug.Log("Test UI Script Console Log" );
-
-
-
      
         Button optionsButton = startMenuUI.Q<Button>("OptionsButton");
 
@@ -68,13 +65,10 @@ public class StartMenuScripts : MonoBehaviour
            });
 
 
-
             //optionsButton.clicked += () => {
             //    Debug.Log("OPTIONS BUTTON CLICK DETECTED!!!!"); 
             //};
-
-
-
+            
             //Debug.Log(optionsButton.pickingMode);
             //optionsButton.visible = false;
             //optionsButton.RemoveFromHierarchy();
