@@ -10,7 +10,7 @@ public class StartMenuScripts : MonoBehaviour
     // Start is called before the first frame update
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 
-    private VisualElement startMenuUI;
+    private VisualElement startMenuUI = null;
     //public CharacterController characterController;
    // private VisualTreeAsset startMenuUIAsset;
 
@@ -19,7 +19,9 @@ public class StartMenuScripts : MonoBehaviour
         //startMenuUIAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI Structure/UI-Home.uxml");
         //startMenuUI = startMenuUIAsset.Instantiate();
 
-        startMenuUI = GetComponent<UIDocument>().rootVisualElement;
+
+        //enable this line v 
+        //startMenuUI = GetComponent<UIDocument>().rootVisualElement;
         Debug.Log("startMenuUI:" + startMenuUI);
 
         //playerStateImage = root.Q<VisualElement>("PlayerStateImage");
