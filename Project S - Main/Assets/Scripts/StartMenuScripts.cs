@@ -112,5 +112,6 @@ public class StartMenuScripts : MonoBehaviour
         //evt.StopPropagation();
     }
 
-
+    //TODO:
+    //function that saves settings to json; 
 }

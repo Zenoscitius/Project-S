@@ -100,7 +100,7 @@ public class MCController : Combatant
     }
 
 
-    public void ChangeHealth(int amount)
+    public override void ChangeHealth(int amount)
     {
         if (amount < 0)
         {
