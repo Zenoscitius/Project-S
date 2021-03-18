@@ -5,14 +5,14 @@ using UnityEngine;
 public class BasicEnemy : Combatant
 {
     // Start is called before the first frame update
-    void Start()
-    {
+    //protected override void Start()
+    //{
         
-    }
+    //}
 
-    // Update is called once per frame
-    void Update()
-    {
+    //// Update is called once per frame
+    //void Update()
+    //{
         
-    }
+    //}
 }

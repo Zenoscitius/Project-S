@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MCController : Combatant
 {
-    //commented comes from parent class
+    //COMMENTED MEMEBERS comes from parent class
     //public float speed = 3.0f;
 
     //public int maxHealth = 5;
@@ -33,9 +33,12 @@ public class MCController : Combatant
 
     //https://learn.unity.com/tutorial/main-character-and-first-script?uv=2020.1&projectId=5c6166dbedbc2a0021b1bc7c#5cda962cedbc2a08f692f813
 
-    void Start()
+    protected override void Start()
     {
+        //Debug.Log("MC Start fxn");
+        base.Start();
         //animator = GetComponent<Animator>();
+
         //currentHealth = maxHealth;
         //rigidbody2d = GetComponent<Rigidbody2D>();
         //audioSource = GetComponent<AudioSource>();
@@ -44,8 +47,10 @@ public class MCController : Combatant
     }
 
     // Update is called once per frame
-    void Update()
+    protected override void Update()
     {
+
+        //base.Update();
         horizontal = Input.GetAxis("Horizontal");
         vertical = Input.GetAxis("Vertical");
 
@@ -64,7 +69,7 @@ public class MCController : Combatant
 
 
 
-        if (Input.GetKeyDown(KeyCode.X))
+        if (false)//(Input.GetKeyDown(KeyCode.X))
         {
             RaycastHit2D hit = Physics2D.Raycast(rigidbody2d.position + Vector2.up * 0.2f, lookDirection, 1.5f, LayerMask.GetMask("NPC"));
             if (hit.collider != null)
