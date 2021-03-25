@@ -16,4 +16,6 @@ public static class UserSettings
     public static string inputType; //controller, keyboard+m
     public static Input lightAttackInput;
 
+    //SwitchCurrentActionMap();
+
 }
