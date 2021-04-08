@@ -364,7 +364,43 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: c4bf2bea-b961-4d4e-86e7-80efd34e11be
     m_ActionName: New action map/New action
-  m_NeverAutoSwitchControlSchemes: 0
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: EscapeMenuScripts, Assembly-CSharp
+        m_MethodName: OnToggleEscapeMenu
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 14d77095-1484-42eb-bad4-eb4a2cb0a1c7
+    m_ActionName: PlayerControls/OpenEscapeMenu[/Keyboard/escape,/XInputControllerWindows/start]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: EscapeMenuScripts, Assembly-CSharp
+        m_MethodName: OnToggleEscapeMenu
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 9949c464-60cf-4a48-9c3f-fc9edcfcaeb7
+    m_ActionName: MenuControls/ToggleEscapeMenu[/Keyboard/escape,/XInputControllerWindows/start]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 032a6b00-02d5-41fa-a143-41ae5ee208de
+    m_ActionName: MenuControls/MenuMovement[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/XInputControllerWindows/leftStick]
+  m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: 
   m_DefaultActionMap: PlayerControls
   m_SplitScreenIndex: -1

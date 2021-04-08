@@ -189,6 +189,15 @@ public class MCController : Combatant
         }
     }
 
+    //This is called from PlayerInput, when a button has been pushed, that corresponds with the 'Escape Menu' action-->moved to escapemenuscipts
+    //public void OnOpenEscapeMenu(InputAction.CallbackContext value)
+    //{
+    //    if (value.started)
+    //    { //only do it when we initially press the button 
+    //        //PauseGame();
+    //        Debug.Log("Open the Escape menu!");
+    //    }
+    //}
 
 
     //This is called from Player Input, when a button has been pushed, that correspons with the 'TogglePause' action
