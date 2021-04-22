@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class EscapeMenuScripts : MonoBehaviour
 {
@@ -238,11 +239,15 @@ public class EscapeMenuScripts : MonoBehaviour
     public void OnButtonHoverIn(BaseEventData eventData)
     {
         Debug.Log("Hover In");
+        
         Debug.Log(eventData);
+        //Image buttonBackground = eventData.selectedObject.GetComponent<Image>();
+        //buttonBackground.color = new Color(255, 255, 255, 1);
     }
     public void OnButtonHoverOut(BaseEventData eventData)
     {
         Debug.Log("Hover Out");
+        Debug.Log(eventData.selectedObject);
     }
 
     // Start is called before the first frame update
@@ -250,11 +255,11 @@ public class EscapeMenuScripts : MonoBehaviour
     {
         //Debug.Log("Escape Menu Scripts");
         //Debug.Log(gameObject.name );
-        this.menuInputs = GetComponent<PlayerInput>();
-        this.playerInputs = playerCharacter.GetComponent<PlayerInput>();
-        this.OptionsMenu.SetActive(false);
-        this.EscapeMenu.SetActive(false);
-        this.menuInputs.currentActionMap.Disable();
+        this.menuInputs = GetComponent<PlayerInput>();//grab reference to menu input controller
+        this.playerInputs = playerCharacter.GetComponent<PlayerInput>(); //grab reference to player input controller
+        this.OptionsMenu.SetActive(false); //hide menus
+        this.EscapeMenu.SetActive(false); //hide menus
+        this.menuInputs.currentActionMap.Disable(); //we need it to start disable atm since player is what has initial control (until we make more changes probably)
         //Debug.Log(this.menuInputs);
         //Debug.Log(this.playerInputs);
     }
