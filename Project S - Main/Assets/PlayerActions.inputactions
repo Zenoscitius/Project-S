@@ -208,7 +208,7 @@
             "id": "81dd0eb3-f804-4e0b-a8e5-cd855133e9ad",
             "actions": [
                 {
-                    "name": "ToggleEscapeMenu",
+                    "name": "CloseEscapeMenu",
                     "type": "Button",
                     "id": "9949c464-60cf-4a48-9c3f-fc9edcfcaeb7",
                     "expectedControlType": "Button",
@@ -262,7 +262,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ToggleEscapeMenu",
+                    "action": "CloseEscapeMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -273,7 +273,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ToggleEscapeMenu",
+                    "action": "CloseEscapeMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

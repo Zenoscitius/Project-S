@@ -160,11 +160,12 @@ public class MCController : Combatant
     //This is called from PlayerInput, when a button has been pushed, that corresponds with the 'Light Attack' action
     public void OnLightAttack(InputAction.CallbackContext value)
     {
-        Debug.Log("Light Attack!");
-        //if (value.started)
-        //{
-        //playerAnimationBehaviour.PlayAttackAnimation();
-        //}
+        
+        if (value.started)
+        {
+            Debug.Log("Light Attack!");
+            //playerAnimationBehaviour.PlayAttackAnimation();
+        }
         //Launch();
     }
 
@@ -172,11 +173,12 @@ public class MCController : Combatant
     //This is called from PlayerInput, when a button has been pushed, that corresponds with the 'Light Attack' action
     public void OnHeavyAttack(InputAction.CallbackContext value)
     {
-        Debug.Log("Heavy Attack!");
-        //if (value.started)
-        //{
-        //playerAnimationBehaviour.PlayAttackAnimation();
-        //}
+        
+        if (value.started)
+        {
+            Debug.Log("Heavy Attack!");
+            //playerAnimationBehaviour.PlayAttackAnimation();
+        }
         //Launch();
     }
 
