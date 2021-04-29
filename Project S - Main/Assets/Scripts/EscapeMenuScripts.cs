@@ -67,35 +67,35 @@ public class EscapeMenuScripts : MonoBehaviour
         { //only do it when we initially press the button 
 
             //playerInput.SwitchCurrentActionMap("MenuControls");
-            Debug.Log("Open the Escape menu!");
-
-            //if (gamePaused)
+            //if(EscapeMenu.activeSelf)
             //{
-            //    ResumeGame();
-            //}
-            //else
-            //{
+                Debug.Log("Open the Escape menu!");
                 PauseGame();
             //}
+
         }
     }
 
-    public void OnCloseEscapeMenu(InputAction.CallbackContext value)
+    public void OnGoBackMenuLevel(InputAction.CallbackContext value)
     {
         if (value.started)
         { //only do it when we initially press the button 
 
-            //playerInput.SwitchCurrentActionMap("MenuControls");
-            Debug.Log("Close the Escape menu!");
+            //playerInput.SwitchCurrentActionMap("MenuControls");   
 
-            //if (gamePaused)
-            //{
+            if (EscapeMenu.activeSelf)
+            {
+                Debug.Log("Close the Escape menu!");
                 ResumeGame();
-            //}
-            //else
-            //{
-            //    PauseGame();
-            //}
+            }
+            else if (OptionsMenu.activeSelf)
+            {
+                Debug.Log("Close the Options menu!");
+            }
+            else
+            {
+                Debug.Log("Unhandled case!");
+            }
         }
     }
 
@@ -117,7 +117,6 @@ public class EscapeMenuScripts : MonoBehaviour
         this.EscapeMenu.SetActive(false);
         Time.timeScale = 1f;
 
-
         this.playerInputs.currentActionMap.Enable();
         this.menuInputs.currentActionMap.Disable();
     }
@@ -131,18 +130,22 @@ public class EscapeMenuScripts : MonoBehaviour
         }
     }
 
-    public void QuitToMenu()
+    public void QuitToMainMenu()
     {
         if (gamePaused)
         {
-
+            //TODO: show confirm prompt 
+            if (gamePaused) Application.Quit();
         }
     }
 
     public void Exitgame()
     {
-        //TODO: show confirm prompt 
-        if (gamePaused) Application.Quit();
+        //TODO: show confirm prompt; maybe should be callable without being paused?
+        if (gamePaused)
+        {
+            Application.Quit();
+        }
     }
 
 
@@ -239,15 +242,22 @@ public class EscapeMenuScripts : MonoBehaviour
     public void OnButtonHoverIn(BaseEventData eventData)
     {
         Debug.Log("Hover In");
-        
-        Debug.Log(eventData);
-        //Image buttonBackground = eventData.selectedObject.GetComponent<Image>();
-        //buttonBackground.color = new Color(255, 255, 255, 1);
+        GameObject selectedButton = eventData.selectedObject;
+        Debug.Log(selectedButton);
+        //Image buttonBackground = selectedButton.GetComponent<Image>();
+        //Debug.Log(buttonBackground.color);
+        //buttonBackground.color = new Color(255, 255, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
+        //Debug.Log(buttonBackground.color);
     }
     public void OnButtonHoverOut(BaseEventData eventData)
     {
         Debug.Log("Hover Out");
-        Debug.Log(eventData.selectedObject);
+        GameObject selectedButton = eventData.selectedObject;
+        Debug.Log(selectedButton);
+        //Image buttonBackground = selectedButton.GetComponent<Image>();
+        //Debug.Log(buttonBackground.color);
+        //buttonBackground.color = new Color(0, 218, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
+        //Debug.Log(buttonBackground.color);
     }
 
     // Start is called before the first frame update
