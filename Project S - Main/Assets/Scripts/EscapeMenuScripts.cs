@@ -4,16 +4,30 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 public class EscapeMenuScripts : MonoBehaviour
 {
+    private Resolution[] resolutions;
+    private int curSelectedResIndex; 
 
     //https://www.red-gate.com/simple-talk/dotnet/c-programming/how-to-create-a-settings-menu-in-unity/
     //https://www.youtube.com/watch?v=ElqAoS2FEDo
 
     public static bool gamePaused = false;
-    public GameObject EscapeMenu; //visual part of the menu; NOT the wrapper
-    public GameObject OptionsMenu; //
+    private GameObject EscapeMenu; //visual part of the menu; NOT the wrapper
+    private GameObject OptionsMenu; //
+    private GameObject VideoOptionsMenu;
+    private GameObject AudioOptionsMenu;
+    private GameObject ControlsOptionsMenu;
+    private GameObject OtherOptionsMenu;
+
+    private GameObject currentActiveMenu; //which of the above menus is presently active, null if none
+
+
+    public TMP_Dropdown resolutionsDropdown;
+
+
     public GameObject playerCharacter; //added in since it seems the objects passed via the events are actually clones so cant access real action maps...
 
     public int currentMenuPosition = 1; //for keyboard navigation tracking
@@ -21,6 +35,8 @@ public class EscapeMenuScripts : MonoBehaviour
 
     private PlayerInput menuInputs = null;
     private PlayerInput playerInputs = null;
+
+    //private  navigationTree;
 
     //This is called from PlayerInput, when a button has been pushed, that corresponds with the 'Escape Menu' action
     //We want to open up the pause menu, pause the game, and switch control from the player over to the Menu exclusively 
@@ -82,30 +98,106 @@ public class EscapeMenuScripts : MonoBehaviour
         { //only do it when we initially press the button 
 
             //playerInput.SwitchCurrentActionMap("MenuControls");   
-
-            if (EscapeMenu.activeSelf)
-            {
-                Debug.Log("Close the Escape menu!");
-                ResumeGame();
-            }
-            else if (OptionsMenu.activeSelf)
-            {
-                Debug.Log("Close the Options menu!");
-            }
-            else
-            {
-                Debug.Log("Unhandled case!");
-            }
+            GoBackMenuLevel();
         }
     }
+
+    public void GoBackMenuLevel()
+    {
+        if (!gamePaused) return;
+
+        if (this.currentActiveMenu == this.EscapeMenu)
+        {
+            Debug.Log("Close the Escape menu!");
+            ResumeGame();
+        }
+        else if (this.currentActiveMenu == this.OptionsMenu)
+        {
+            Debug.Log("Close the Options menu!");
+            NavigateToMenu("EscapeMenu");
+        }
+        else if (this.currentActiveMenu == this.VideoOptionsMenu)
+        {
+            NavigateToMenu("OptionsMenu");
+        }
+        else if (this.currentActiveMenu == this.AudioOptionsMenu)
+        {
+            NavigateToMenu("OptionsMenu");
+        }
+        else if (this.currentActiveMenu == this.ControlsOptionsMenu)
+        {
+            NavigateToMenu("OptionsMenu");
+        }
+        else if (this.currentActiveMenu == this.OtherOptionsMenu)
+        {
+            NavigateToMenu("OptionsMenu");
+        }
+        else
+        {
+            Debug.Log("Unhandled case!");
+        }
+    }
+
+    public void NavigateToMenu(string targetMenu)
+    {
+        if (!gamePaused) return;
+
+            this.currentActiveMenu.SetActive(false);
+        if (targetMenu == "EscapeMenu")
+        {
+            this.currentActiveMenu = this.EscapeMenu;
+        }
+        else if (targetMenu == "OptionsMenu")
+        {
+            this.currentActiveMenu = this.OptionsMenu;
+        }
+        else if (targetMenu == "VideoOptionsMenu")
+        {
+            this.currentActiveMenu = this.VideoOptionsMenu;
+        }
+        else if (targetMenu == "AudioOptionsMenu")
+        {
+            this.currentActiveMenu = this.AudioOptionsMenu;
+        }
+        else if (targetMenu == "ControlsOptionsMenu")
+        {
+            this.currentActiveMenu = this.ControlsOptionsMenu;
+        }
+        else if (targetMenu == "OtherOptionsMenu")
+        {
+            this.currentActiveMenu = this.OtherOptionsMenu;
+        }
+        else
+        {
+            Debug.Log("Unhandled case!");
+        }
+
+        this.currentActiveMenu.SetActive(true);
+
+
+        //// iterate through all first level children
+        //foreach (Transform child in gameObject.transform)
+        //{
+        //    if (child.gameObject.activeSelf)
+        //    {
+        //        Debug.Log($"The child {child.name} is active!");
+        //    }
+        //    else
+        //    {
+        //        Debug.Log($"The child {child.name} is inactive!");
+        //    }
+        //}
+
+    }
+
 
     public void PauseGame()
     {
         Debug.Log("Pause Game");
         gamePaused = true;
         this.EscapeMenu.SetActive(true);
+        this.currentActiveMenu = this.EscapeMenu;
         Time.timeScale = 0f; //note Update() continues to run; FixedUpdate doesnt get called at all 
-
         this.playerInputs.currentActionMap.Disable();
         this.menuInputs.currentActionMap.Enable();
     }
@@ -115,21 +207,13 @@ public class EscapeMenuScripts : MonoBehaviour
         Debug.Log("Resume Game");
         gamePaused = false;
         this.EscapeMenu.SetActive(false);
+        this.currentActiveMenu = null;
         Time.timeScale = 1f;
 
         this.playerInputs.currentActionMap.Enable();
         this.menuInputs.currentActionMap.Disable();
     }
-
-    public void LoadOptions()
-    {
-        if (gamePaused)
-        {
-            this.EscapeMenu.SetActive(false);
-            this.OptionsMenu.SetActive(true);
-        }
-    }
-
+    
     public void QuitToMainMenu()
     {
         if (gamePaused)
@@ -150,94 +234,7 @@ public class EscapeMenuScripts : MonoBehaviour
 
 
     //https://www.red-gate.com/simple-talk/dotnet/c-programming/how-to-create-a-settings-menu-in-unity/
-
-    //Video options
-    public void OpenVideoOptions()
-    {
-
-    }
-    public void CloseVideoOptions()
-    {
-
-    }
-
-
-    //Audio Options
-    public void OpenAudioOptions()
-    {
-
-    }
-    public void CloseAudioOptions()
-    {
-
-    }
-
-    //Keybinding/Controls Options
-    public void OpenControlOptions()
-    {
-
-    }
-    public void CloseControlOptions()
-    {
-
-    }
-
-    //All other options
-    public void OpenOtherOptions()
-    {
-
-    }
-    public void CloseOtherOptions()
-    {
-
-    }
-
-
-    //Options Back Button
-    public void GoBackToEscape()
-    {
-        if (gamePaused)
-        {
-            this.EscapeMenu.SetActive(true);
-            this.OptionsMenu.SetActive(false);
-        }
-    }
-
-    public void GoBackToMainOptions(string from)
-    {
-        if (gamePaused)
-        {
-            //this.EscapeMenu.SetActive(false);
-            this.OptionsMenu.SetActive(true);
-        }
-    }
-
-    public void GoToSubOptions(string to)
-    {
-        if (gamePaused)
-        {
-
-            //this.EscapeMenu.SetActive(true);
-            this.OptionsMenu.SetActive(false);
-
-            // the object to examine the childs of
-            //Transform parent;// gameObject.transform
-
-            // iterate through all first level children
-            foreach (Transform child in gameObject.transform)
-            {
-                if (child.gameObject.activeSelf)
-                {
-                    Debug.Log($"The child {child.name} is active!");
-                }
-                else
-                {
-                    Debug.Log($"The child {child.name} is inactive!");
-                }
-            }  
-        }
-    }
-
+    
 
     public void OnButtonHoverIn(BaseEventData eventData)
     {
@@ -260,18 +257,93 @@ public class EscapeMenuScripts : MonoBehaviour
         //Debug.Log(buttonBackground.color);
     }
 
+    public void SetResolutionOptions()
+    {
+        List<string> validDisplayOptions = new List<string>();
+
+        //TODO: decide how to handle refresh rates, framerate caps, vsync,
+        for (int i=0; i < resolutions.Length; i++)
+        {
+            string optionString = resolutions[i].width + " x " + resolutions[i].height + " " + resolutions[i].refreshRate + "Hz";
+            validDisplayOptions.Add(optionString);
+
+            //if this is the currently in use resolution, note so
+            //if (resolutions[i].width == Screen.width && resolutions[i].height == Screen.height && resolutions[i].refreshRate == Screen.refreshRate)
+            if (resolutions[i].width == Screen.currentResolution.width && resolutions[i].height == Screen.currentResolution.height && resolutions[i].refreshRate == Screen.currentResolution.refreshRate)
+            {
+                curSelectedResIndex = i;
+            }
+        }
+
+        validDisplayOptions.Reverse();
+        curSelectedResIndex = validDisplayOptions.Count - (curSelectedResIndex + 1); //correct index
+
+        this.resolutionsDropdown.ClearOptions();
+        this.resolutionsDropdown.AddOptions(validDisplayOptions);
+        this.resolutionsDropdown.value = curSelectedResIndex;
+        this.resolutionsDropdown.RefreshShownValue(); //just in case?
+    }
+
+
+    public void OnResolutionSelect(int eventData)
+    {
+        Debug.Log("Resolution Selected: " + eventData);
+        int resArrayIndex = resolutions.Length - (eventData + 1);
+        SetResolution(resArrayIndex);
+
+        //Image buttonBackground = selectedButton.GetComponent<Image>();
+        //Debug.Log(buttonBackground.color);
+        //buttonBackground.color = new Color(255, 255, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
+        //Debug.Log(buttonBackground.color);
+    }
+
+    public void SetResolution( int resArrayIndex)
+    {
+        curSelectedResIndex = resArrayIndex;
+        Resolution targetRes = resolutions[resArrayIndex];
+        Screen.SetResolution(targetRes.width, targetRes.height, UserSettings.isFullscreen, targetRes.refreshRate);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        //Debug.Log("Escape Menu Scripts");
-        //Debug.Log(gameObject.name );
+        Debug.Log("Escape Menu Scripts");
+
+
+
+
+        //TODO setup a data structure that holds the hierarchy information so its more generalized
+        //Otherwise turns these back into public vars that you use the inspector to assign 
+        //https://docs.unity3d.com/ScriptReference/Transform.Find.html , if we make the structure hierarchical, we will need to add the /'s
+        this.EscapeMenu = gameObject.transform.Find("EscapeMenu").gameObject;
+        this.OptionsMenu = gameObject.transform.Find("OptionsMenu").gameObject;
+        this.VideoOptionsMenu = gameObject.transform.Find("VideoOptionsMenu").gameObject;
+        //this.AudioOptionsMenu = gameObject.transform.Find("AudioOptionsMenu").gameObject;
+        //this.ControlsOptionsMenu = gameObject.transform.Find("ControlsOptionsMenu").gameObject;
+        //this.OtherOptionsMenu = gameObject.transform.Find("OtherOptionsMenu").gameObject;
+
+        //disable/hide the menus 
+        this.EscapeMenu.SetActive(false);
+        this.OptionsMenu.SetActive(false);
+        this.VideoOptionsMenu.SetActive(false);
+        //this.AudioOptionsMenu.SetActive(false);
+        //this.ControlsOptionsMenu.SetActive(false);
+        //this.OtherOptionsMenu.SetActive(false);
+
+        //setup inputs
         this.menuInputs = GetComponent<PlayerInput>();//grab reference to menu input controller
         this.playerInputs = playerCharacter.GetComponent<PlayerInput>(); //grab reference to player input controller
-        this.OptionsMenu.SetActive(false); //hide menus
-        this.EscapeMenu.SetActive(false); //hide menus
         this.menuInputs.currentActionMap.Disable(); //we need it to start disable atm since player is what has initial control (until we make more changes probably)
+
         //Debug.Log(this.menuInputs);
         //Debug.Log(this.playerInputs);
+
+
+        //let unity get the valid detected screen resolutions (only works from exe not in editor allegedly) 
+        this.resolutions =  Screen.resolutions;
+        SetResolutionOptions();
+        //this.resolutionsDropdown = VideoOptionsMenu.transform.Find("ResolutionsDropdown").gameObject;
+
     }
 
     // Update is called once per frame

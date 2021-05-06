@@ -36,8 +36,6 @@ public class Combatant : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
     }
 
-
-
     //https://learn.unity.com/tutorial/coroutines?uv=2019.3&projectId=5c88f2c1edbc2a001f873ea5
     //coroutines-->more efficient updating when usable
 

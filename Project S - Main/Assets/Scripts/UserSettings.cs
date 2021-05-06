@@ -15,6 +15,8 @@ public class UserSettings : MonoBehaviour //cant declare complex members in stat
     //[old?] https://forum.unity.com/threads/rebinding-keys-isnt-reflected-in-existing-controlschemes.829191/
     //[OLD_INPUT_SYSTEM]https://docs.unity3d.com/Manual/class-InputManager.html
 
+    public static bool isFullscreen = true;
+
     public static string inputType; //controller, keyboard+m
     public static Input lightAttackInput;
 
