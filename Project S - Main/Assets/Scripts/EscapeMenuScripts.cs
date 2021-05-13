@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+//using static UserSettings; 
 
 public class EscapeMenuScripts : MonoBehaviour
 {
@@ -269,6 +270,9 @@ public class EscapeMenuScripts : MonoBehaviour
 
             //if this is the currently in use resolution, note so
             //if (resolutions[i].width == Screen.width && resolutions[i].height == Screen.height && resolutions[i].refreshRate == Screen.refreshRate)
+
+
+
             if (resolutions[i].width == Screen.currentResolution.width && resolutions[i].height == Screen.currentResolution.height && resolutions[i].refreshRate == Screen.currentResolution.refreshRate)
             {
                 curSelectedResIndex = i;
@@ -278,6 +282,7 @@ public class EscapeMenuScripts : MonoBehaviour
         validDisplayOptions.Reverse();
         curSelectedResIndex = validDisplayOptions.Count - (curSelectedResIndex + 1); //correct index
 
+        //fix the resolution list display 
         this.resolutionsDropdown.ClearOptions();
         this.resolutionsDropdown.AddOptions(validDisplayOptions);
         this.resolutionsDropdown.value = curSelectedResIndex;
@@ -288,28 +293,58 @@ public class EscapeMenuScripts : MonoBehaviour
     public void OnResolutionSelect(int eventData)
     {
         Debug.Log("Resolution Selected: " + eventData);
-        int resArrayIndex = resolutions.Length - (eventData + 1);
+        int resArrayIndex = resolutions.Length - (eventData + 1); //correct the visual array index vs actual index
         SetResolution(resArrayIndex);
 
         //Image buttonBackground = selectedButton.GetComponent<Image>();
         //Debug.Log(buttonBackground.color);
         //buttonBackground.color = new Color(255, 255, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
         //Debug.Log(buttonBackground.color);
+
+       
     }
 
     public void SetResolution( int resArrayIndex)
     {
+        Debug.Log("Resolution Selected at Index: " + resArrayIndex);
         curSelectedResIndex = resArrayIndex;
         Resolution targetRes = resolutions[resArrayIndex];
-        Screen.SetResolution(targetRes.width, targetRes.height, UserSettings.isFullscreen, targetRes.refreshRate);
+        Screen.SetResolution(targetRes.width, targetRes.height, UserSettings.Instance.isFullscreen, targetRes.refreshRate);
+
+        //TODO: save the user setting change to the settings file 
+        //TODO: have a popup that autoreverts if not confirmed 
+
+
     }
+
+
+    public void OnUpdateVsync(bool newValue)
+    {
+        UserSettings.Instance.isVsynced = newValue;
+    }
+
+    public void OnUpdateWindowed(bool newValue)
+    {
+        UserSettings.Instance.isFullscreen = !newValue;
+    }
+    public void OnUpdateResizable(bool newValue)
+    {
+        UserSettings.Instance.isResizable = newValue && !UserSettings.Instance.isFullscreen;
+    }
+
+    public void UpdateBooleanOption(bool newValue)
+    {
+        
+    }
+
+
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("Escape Menu Scripts");
 
-
+        //Debug.Log(UserSettings.Instance);
 
 
         //TODO setup a data structure that holds the hierarchy information so its more generalized
