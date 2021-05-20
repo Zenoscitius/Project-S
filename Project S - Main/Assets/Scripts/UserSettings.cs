@@ -19,6 +19,8 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     //[OLD_INPUT_SYSTEM]https://docs.unity3d.com/Manual/class-InputManager.html
 
 
+    
+   
     // To use: access with UserSettings.Instance
     //
     // To set up:
@@ -47,22 +49,41 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     }
 
 
-    //TODO: we probably need to have this tie into some sort of core unity initialization that lets it know it should run in whatever the saved settings for these are 
+    //TODO: try out https://assetstore.unity.com/packages/tools/input-management/json-net-for-unity-11347#description for easier/better serialization
+
+    //Apparently these are just "easy json" basically and dont have inherent tie ins that are useful for us? 
     //https://docs.unity3d.com/ScriptReference/PlayerPrefs.html
     //https://docs.unity3d.com/Manual/class-PlayerSettings.html
 
-    public bool isFullscreen = Screen.fullScreen;
-    public bool isResizable = !Screen.fullScreen;
+    public bool isFullscreen = true;// Screen.fullScreen;
+    public bool isResizable = false; //!Screen.fullScreen;
     public bool isVsynced = false;
-    public Resolution currentResolution = Screen.currentResolution;
+    public SaveResolution saveResolution;
+    Resolution currentResolution;//  Screen.currentResolution;?
 
+
+    //TODO: maybe change the name and expand beyond just resolution-- such as other screen data
+    [System.Serializable]
+    public struct SaveResolution
+    {
+        public int height;
+        public int width;
+        public int refreshRate;
+
+        //public bool isFullscreen;
+        //public bool isResizable;
+        //public bool isVsynced;
+
+    }
+   
+    //public PlayerPrefs unitySettings = new PlayerPrefs();
 
     //TODO: determine if this will serialize to json nicely for rebinding 
     public  string inputType; //controller, keyboard+m
     public  InputActionMap controlBindings;
 
-    private  string settingsFileName = "settings.json";
-    private  string settingsFilePath;
+    private string settingsFileName = "settings.dat";
+    private string settingsFilePath;
     //SwitchCurrentActionMap();
 
     private string SettingsToJson()
@@ -118,44 +139,80 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         //m_UpdateBindingUIEvent?.Invoke(this, displayString, deviceLayoutName, controlPath);
     }
 
-        //save the settings as JSON to a file at a location TBD
-        public void SaveUserSettingsToFile()
-    {
-        Debug.Log("SaveUserSettingsToFile");
-        string settingsJson = JsonUtility.ToJson(this);
-        Debug.Log(settingsJson);
+       
 
-        DataManager.SaveJsonDataToFile(settingsFilePath, settingsJson);
-        //File.WriteAllText(settingsFilePath, settingsJson);
+
+    public void UpdateResolution(Resolution newResolution)
+    {
+        this.saveResolution.height = newResolution.height;
+        this.saveResolution.width = newResolution.width;
+        this.saveResolution.refreshRate = newResolution.refreshRate;
+        currentResolution = newResolution;
+        Screen.SetResolution(currentResolution.width, currentResolution.height, Screen.fullScreen, currentResolution.refreshRate);
+    }
+    public void UpdateResolution()
+    {
+        currentResolution.width = this.saveResolution.width;
+        currentResolution.height = this.saveResolution.height;
+        currentResolution.refreshRate = this.saveResolution.refreshRate;
+        Screen.SetResolution(currentResolution.width, currentResolution.height, Screen.fullScreen, currentResolution.refreshRate);
+    }
+
+
+    //save the settings as JSON to a file at a location TBD
+    public void SaveUserSettingsToFile()
+    {
+        string settingsJson = JsonUtility.ToJson(this);
+        Debug.Log($"SaveUserSettingsToFile: {settingsJson}");
+
+        DataManager.SaveJsonDataToFile(settingsFileName, settingsJson);
     }
 
 
     //load the settings as JSON from a file at a location TBD
     public void LoadUserSettingsFromFile()
     {
-        Debug.Log("LoadUserSettingsFromFile");
+        //Debug.Log("LoadUserSettingsFromFile");
         //JSON.Parse(jsonString);
         //JsonUtility.FromJson(this);
 
-        if(File.Exists(settingsFilePath))
-        {
-            string jsonData = DataManager.LoadJsonDataFromFile(settingsFilePath);
+        //if(File.Exists(settingsFileName))
+        //{
+            string jsonData = DataManager.LoadJsonDataFromFile(settingsFileName);
 
-            if(jsonData.Length > 3)  JsonUtility.FromJsonOverwrite(jsonData, this);
-        }
+            Debug.Log($"loaded user settings Json Data: {jsonData}");
 
+            if (jsonData.Length > 3)
+            {
+                JsonUtility.FromJsonOverwrite(jsonData, this);
+                UpdateResolution();
+            }
+        //}
+       
     }
 
     private void Awake()
     {
-        Debug.Log("User Settings instance up and running from awake woot!");
-
+        //Debug.Log("User Settings instance up and running from awake woot!");
+        //Debug.Log(PlayerPrefs)
         settingsFilePath = Path.Combine(Application.persistentDataPath, settingsFileName);
-        bool seetingsFileExists = File.Exists(settingsFilePath);
-        if(seetingsFileExists) LoadUserSettingsFromFile();
+        bool settingsFileExists = File.Exists(settingsFilePath);
+
+        if (settingsFileExists)
+        {
+            //Debug.Log("User Settings file exists!");
+            LoadUserSettingsFromFile();
+        }
+        else
+        {
+            Debug.Log("NO User Settings file !");
+            this.isFullscreen = Screen.fullScreen;
+            this.isResizable = !Screen.fullScreen;
+            this.isVsynced = false;
+            this.currentResolution = Screen.currentResolution;
+        }
+
     }
-
-
 
     private void Start()
     {

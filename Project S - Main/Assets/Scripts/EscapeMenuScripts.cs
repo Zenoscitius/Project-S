@@ -239,7 +239,7 @@ public class EscapeMenuScripts : MonoBehaviour
 
     public void OnButtonHoverIn(BaseEventData eventData)
     {
-        Debug.Log("Hover In");
+        //Debug.Log("Hover In");
         GameObject selectedButton = eventData.selectedObject;
         Debug.Log(selectedButton);
         //Image buttonBackground = selectedButton.GetComponent<Image>();
@@ -249,7 +249,7 @@ public class EscapeMenuScripts : MonoBehaviour
     }
     public void OnButtonHoverOut(BaseEventData eventData)
     {
-        Debug.Log("Hover Out");
+        //Debug.Log("Hover Out");
         GameObject selectedButton = eventData.selectedObject;
         Debug.Log(selectedButton);
         //Image buttonBackground = selectedButton.GetComponent<Image>();
@@ -309,27 +309,34 @@ public class EscapeMenuScripts : MonoBehaviour
         Debug.Log("Resolution Selected at Index: " + resArrayIndex);
         curSelectedResIndex = resArrayIndex;
         Resolution targetRes = resolutions[resArrayIndex];
-        Screen.SetResolution(targetRes.width, targetRes.height, UserSettings.Instance.isFullscreen, targetRes.refreshRate);
+        //Screen.SetResolution(targetRes.width, targetRes.height, Screen.fullScreen, targetRes.refreshRate);
 
+        //UserSettings.Instance.isFullscreen
         //TODO: save the user setting change to the settings file 
         //TODO: have a popup that autoreverts if not confirmed 
 
-
+        //update the actual settings
+        UserSettings.Instance.UpdateResolution(targetRes);
+        //UserSettings.Instance.currentResolution = Screen.currentResolution;
+        UserSettings.Instance.SaveUserSettingsToFile();
     }
 
 
     public void OnUpdateVsync(bool newValue)
     {
         UserSettings.Instance.isVsynced = newValue;
+        UserSettings.Instance.SaveUserSettingsToFile();
     }
 
     public void OnUpdateWindowed(bool newValue)
     {
         UserSettings.Instance.isFullscreen = !newValue;
+        UserSettings.Instance.SaveUserSettingsToFile();
     }
     public void OnUpdateResizable(bool newValue)
     {
         UserSettings.Instance.isResizable = newValue && !UserSettings.Instance.isFullscreen;
+        UserSettings.Instance.SaveUserSettingsToFile();
     }
 
     public void UpdateBooleanOption(bool newValue)
@@ -344,6 +351,7 @@ public class EscapeMenuScripts : MonoBehaviour
     {
         Debug.Log("Escape Menu Scripts");
 
+        Debug.Log($"temp init spot for userSettings {UserSettings.Instance}");
         //Debug.Log(UserSettings.Instance);
 
 
