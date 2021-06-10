@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using UnityEditor;
 //using static UserSettings; 
 
 public class EscapeMenuScripts : MonoBehaviour
@@ -345,6 +346,38 @@ public class EscapeMenuScripts : MonoBehaviour
     }
 
 
+    //https://hextantstudios.com/unity-custom-settings/
+    //https://support.unity.com/hc/en-us/articles/115000177803-How-can-I-modify-Project-Settings-via-scripting-
+
+
+    public void UpdateMainVolume(float newValue)
+    {
+        //Debug.Log($"New setting: {newValue} ");
+        const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
+        SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
+        SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
+
+        m_Volume.floatValue = newValue;
+        audioManager.ApplyModifiedProperties();
+    }
+
+
+    public float GetMainVolume()
+    {
+        const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
+        SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
+        SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
+
+        return m_Volume.floatValue;
+    }
+
+
+    public void OnUpdateMainVolume(float newValue)
+    {
+        //Debug.Log($"New setting: {newValue} ");
+        UpdateMainVolume(newValue);
+    }
+
 
     // Start is called before the first frame update
     void Start()
@@ -361,7 +394,7 @@ public class EscapeMenuScripts : MonoBehaviour
         this.EscapeMenu = gameObject.transform.Find("EscapeMenu").gameObject;
         this.OptionsMenu = gameObject.transform.Find("OptionsMenu").gameObject;
         this.VideoOptionsMenu = gameObject.transform.Find("VideoOptionsMenu").gameObject;
-        //this.AudioOptionsMenu = gameObject.transform.Find("AudioOptionsMenu").gameObject;
+        this.AudioOptionsMenu = gameObject.transform.Find("AudioOptionsMenu").gameObject;
         //this.ControlsOptionsMenu = gameObject.transform.Find("ControlsOptionsMenu").gameObject;
         //this.OtherOptionsMenu = gameObject.transform.Find("OtherOptionsMenu").gameObject;
 
@@ -369,7 +402,7 @@ public class EscapeMenuScripts : MonoBehaviour
         this.EscapeMenu.SetActive(false);
         this.OptionsMenu.SetActive(false);
         this.VideoOptionsMenu.SetActive(false);
-        //this.AudioOptionsMenu.SetActive(false);
+        this.AudioOptionsMenu.SetActive(false);
         //this.ControlsOptionsMenu.SetActive(false);
         //this.OtherOptionsMenu.SetActive(false);
 
@@ -384,8 +417,16 @@ public class EscapeMenuScripts : MonoBehaviour
 
         //let unity get the valid detected screen resolutions (only works from exe not in editor allegedly) 
         this.resolutions =  Screen.resolutions;
+        this.resolutionsDropdown = VideoOptionsMenu.transform.Find("ResolutionsDropdown").gameObject.GetComponent<TMP_Dropdown>();
         SetResolutionOptions();
-        //this.resolutionsDropdown = VideoOptionsMenu.transform.Find("ResolutionsDropdown").gameObject;
+  
+
+
+        //setup initial volumes 
+        //TODO: have a location that saves the value between sessions that we grab from;
+
+        float mainVolume = GetMainVolume();
+        this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
 
     }
 
