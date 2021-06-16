@@ -43,9 +43,12 @@ public class StartMenuScripts : MonoBehaviour
     void Start()
     //void OnEnable()
     {
+
+        //Debug.Log($"temp init spot for userSettings {UserSettings.Instance}");
+        //
         //https://docs.unity3d.com/2020.1/Documentation/Manual/UIE-LoadingUXMLcsharp.html
 
-        Debug.Log("Test UI Script Console Log" );
+        //Debug.Log("Test UI Script Console Log" );
      
         Button optionsButton = startMenuUI.Q<Button>("OptionsButton");
 
