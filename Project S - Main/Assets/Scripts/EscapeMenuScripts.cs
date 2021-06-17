@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 using UnityEditor;
+using UnityEngine.Audio;
 //using static UserSettings; 
 
 public class EscapeMenuScripts : MonoBehaviour
@@ -34,6 +35,7 @@ public class EscapeMenuScripts : MonoBehaviour
 
     public int currentMenuPosition = 1; //for keyboard navigation tracking
 
+    public AudioMixer audioMixer;
 
     private PlayerInput menuInputs = null;
     private PlayerInput playerInputs = null;
@@ -374,8 +376,29 @@ public class EscapeMenuScripts : MonoBehaviour
 
     public void OnUpdateMainVolume(float newValue)
     {
+        //TODO: consider having this operate on the mixer instead of the main project volume?  project volume is probably better due to core integration or something
         //Debug.Log($"New setting: {newValue} ");
         UpdateMainVolume(newValue);
+    }
+
+
+    public void OnUpdateFXVolume(float newValue) { SetVolume("FXVolume", newValue); }
+    public void OnUpdateMusicVolume(float newValue) { SetVolume("MusicVolume", newValue); }
+    public void OnUpdateVoicesVolume(float newValue) { SetVolume("VoicesVolume", newValue); }
+
+    public void SetVolume(string type, float newValue)
+    {
+        if (newValue > 0) //when log doesnt break and it technically still makes noise
+        {
+            float convertedVolume = Mathf.Log10(newValue) * 20;
+            audioMixer.SetFloat(type, convertedVolume);
+            Debug.Log($"New volume: {convertedVolume} ");
+        }
+        else //should mute instead (seems we cant access that option directly via script--just set to absolute min volume instead?
+        {
+            audioMixer.SetFloat(type, -80f);
+        }
+     
     }
 
 
@@ -395,16 +418,16 @@ public class EscapeMenuScripts : MonoBehaviour
         this.OptionsMenu = gameObject.transform.Find("OptionsMenu").gameObject;
         this.VideoOptionsMenu = gameObject.transform.Find("VideoOptionsMenu").gameObject;
         this.AudioOptionsMenu = gameObject.transform.Find("AudioOptionsMenu").gameObject;
-        //this.ControlsOptionsMenu = gameObject.transform.Find("ControlsOptionsMenu").gameObject;
-        //this.OtherOptionsMenu = gameObject.transform.Find("OtherOptionsMenu").gameObject;
+        this.ControlsOptionsMenu = gameObject.transform.Find("ControlsOptionsMenu").gameObject;
+        this.OtherOptionsMenu = gameObject.transform.Find("OtherOptionsMenu").gameObject;
 
         //disable/hide the menus 
         this.EscapeMenu.SetActive(false);
         this.OptionsMenu.SetActive(false);
         this.VideoOptionsMenu.SetActive(false);
         this.AudioOptionsMenu.SetActive(false);
-        //this.ControlsOptionsMenu.SetActive(false);
-        //this.OtherOptionsMenu.SetActive(false);
+        this.ControlsOptionsMenu.SetActive(false);
+        this.OtherOptionsMenu.SetActive(false);
 
         //setup inputs
         this.menuInputs = GetComponent<PlayerInput>();//grab reference to menu input controller
@@ -424,7 +447,6 @@ public class EscapeMenuScripts : MonoBehaviour
 
         //setup initial volumes 
         //TODO: have a location that saves the value between sessions that we grab from;
-
         float mainVolume = GetMainVolume();
         this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
 
