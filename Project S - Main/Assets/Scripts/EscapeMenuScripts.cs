@@ -31,6 +31,9 @@ public class EscapeMenuScripts : MonoBehaviour
     public TMP_Dropdown resolutionsDropdown;
 
 
+    public GameObject controlBinderPrefab;
+
+
     public GameObject playerCharacter; //added in since it seems the objects passed via the events are actually clones so cant access real action maps...
 
     public int currentMenuPosition = 1; //for keyboard navigation tracking
@@ -244,7 +247,7 @@ public class EscapeMenuScripts : MonoBehaviour
     {
         //Debug.Log("Hover In");
         GameObject selectedButton = eventData.selectedObject;
-        Debug.Log(selectedButton);
+        //Debug.Log(selectedButton);
         //Image buttonBackground = selectedButton.GetComponent<Image>();
         //Debug.Log(buttonBackground.color);
         //buttonBackground.color = new Color(255, 255, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
@@ -254,7 +257,7 @@ public class EscapeMenuScripts : MonoBehaviour
     {
         //Debug.Log("Hover Out");
         GameObject selectedButton = eventData.selectedObject;
-        Debug.Log(selectedButton);
+        //Debug.Log(selectedButton);
         //Image buttonBackground = selectedButton.GetComponent<Image>();
         //Debug.Log(buttonBackground.color);
         //buttonBackground.color = new Color(0, 218, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
@@ -386,6 +389,8 @@ public class EscapeMenuScripts : MonoBehaviour
     public void OnUpdateMusicVolume(float newValue) { SetVolume("MusicVolume", newValue); }
     public void OnUpdateVoicesVolume(float newValue) { SetVolume("VoicesVolume", newValue); }
 
+    //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
+    //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
     public void SetVolume(string type, float newValue)
     {
         if (newValue > 0) //when log doesnt break and it technically still makes noise
@@ -399,6 +404,41 @@ public class EscapeMenuScripts : MonoBehaviour
             audioMixer.SetFloat(type, -80f);
         }
      
+    }
+
+
+    //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.InputActionRebindingExtensions.RebindingOperation.html
+    //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/HowDoI.html
+    //https://docs.unity3d.com/Packages/com.unity.inputsystem@0.1/api/UnityEngine.Experimental.Input.InputActionRebindingExtensions.RebindingOperation.html
+    public void RebindAction(InputAction actionToRebind)
+    {
+        Debug.Log($"Attempting to rebind an action... {actionToRebind}");
+        //var rebind = new InputActionRebindingExtensions.RebindingOperation()
+        //.WithAction(myAction)
+        //.WithBindingGroup("Gamepad")
+        //.WithCancelingThrough("<Keyboard>/escape");
+
+        var rebindOperation = actionToRebind.PerformInteractiveRebinding()
+            .WithControlsExcluding("<Pointer>/position") // Don"t bind to mouse positionS
+            .WithControlsExcluding("<Pointer>/delta") // Don"t bind to mouse movement deltas
+            .WithCancelingThrough("<Keyboard>/escape")
+            .OnMatchWaitForAnother(0.1f)
+            .OnComplete( operation => {
+                Debug.Log($"Rebound '{actionToRebind}' to '{operation.selectedControl}'");
+                operation.Dispose();
+            })
+            .Start();
+    }
+
+
+    //function that the rebind button triggers (it will have the string be statically in there, generated when the instances are made) 
+    public void OnRebindClick(string actionName)
+    {
+        Debug.Log($"Click on rebind of : {actionName}");
+        InputAction targetAction = this.menuInputs.currentActionMap.FindAction(actionName);
+        if(targetAction == null) targetAction = this.playerInputs.currentActionMap.FindAction(actionName);
+        if (targetAction == null) Debug.LogWarning($"No action found for string name: {actionName}");
+        else RebindAction(targetAction);
     }
 
 
@@ -449,6 +489,55 @@ public class EscapeMenuScripts : MonoBehaviour
         //TODO: have a location that saves the value between sessions that we grab from;
         float mainVolume = GetMainVolume();
         this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
+
+
+
+        //setup controls display
+        float placerStart = 300;
+        float placerIntervalY = -60;
+        int currentInterval = 0;
+        foreach (InputAction action in this.playerInputs.actions)
+        {
+     
+            //TODO: get working with the scroller
+
+
+            //create a controlbinder as a child of the scroller
+            GameObject controlBinder = Instantiate(this.controlBinderPrefab, this.ControlsOptionsMenu.transform.Find("BindingsScroller").transform.Find("Viewport").transform.Find("Content").transform);
+            //controlBinder.transform.localPosition = new Vector3 (0, placerStart + (placerIntervalY * currentInterval), 0); //use .Set if this doesnt work ?
+                                                                                                                         
+
+            //TODO: also make sure the recttransform part of the canvas renderer is behaving correctly?
+            RectTransform rectTransform = controlBinder.GetComponent<RectTransform>();
+            rectTransform.localPosition = new Vector3(0, placerStart + (placerIntervalY * currentInterval), 0);
+            rectTransform.anchorMax = new Vector2(.5f, .5f);
+            rectTransform.anchorMin = new Vector2(.5f, .5f);
+            rectTransform.pivot = new Vector2(.5f, .5f);
+            //rectTransform.sizeDelta = new Vector2(320, 50);
+
+            Debug.Log($"Final Rect Transform of {action.name} is {rectTransform.anchorMax}, {rectTransform.anchorMin}, {rectTransform.pivot}, {rectTransform.sizeDelta}");
+
+            //Get and update the label 
+            GameObject labelObject = controlBinder.transform.Find("Label").gameObject;
+            labelObject.GetComponent<TMP_Text>().SetText(action.name);
+
+            //Get and update the button
+            GameObject buttonObject = controlBinder.transform.Find("Binding").gameObject; 
+            buttonObject.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(action.GetBindingDisplayString() );
+
+            //add the appropriate listener to the button 
+            buttonObject.GetComponent<Button>().onClick.AddListener( () => OnRebindClick(action.name) ); //delegate { OnRebindClick(action.name); } [both of these work]
+
+
+            //Debug.Log($"Final Rect Transform of {action.name} is {rectTransform}");
+
+
+            //Debug.Log($"New local Position Vector of {action.name} should be {new Vector3(0, placerStart + (placerIntervalY * currentInterval), 0)}");
+            Debug.Log($"Created ControlBinder {action.name} at {controlBinder.transform.localPosition}");
+
+            currentInterval++;
+
+        }
 
     }
 
