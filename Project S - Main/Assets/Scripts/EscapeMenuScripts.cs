@@ -47,6 +47,7 @@ public class EscapeMenuScripts : MonoBehaviour
 
     //This is called from PlayerInput, when a button has been pushed, that corresponds with the 'Escape Menu' action
     //We want to open up the pause menu, pause the game, and switch control from the player over to the Menu exclusively 
+    //for more about pausing https://gamedevbeginner.com/the-right-way-to-pause-the-game-in-unity/#exclude_objects_from_pause
     public void OnToggleEscapeMenu(InputAction.CallbackContext value)
     {
         //TODO: determine where we put the action maps, and how we will switch them when this triggers 
@@ -493,27 +494,60 @@ public class EscapeMenuScripts : MonoBehaviour
 
 
         //setup controls display
-        float placerStart = 300;
-        float placerIntervalY = -60;
-        int currentInterval = 0;
+        Transform instanceParentObject = this.ControlsOptionsMenu.transform.Find("BindingsScroller").transform.Find("Viewport").transform.Find("Content").transform;
+        float parentWidth = instanceParentObject.GetComponent<RectTransform>().rect.width;
+        float parentHeight = instanceParentObject.GetComponent<RectTransform>().rect.height;
+        //Debug.Log($"Parent Rect sizeDelta {instanceParentObject.GetComponent<RectTransform>().sizeDelta}");
+        //Debug.Log($"Parent Rect position {instanceParentObject.GetComponent<RectTransform>().position}");
+        Debug.Log($"Parent Rect rect {instanceParentObject.GetComponent<RectTransform>().rect}");
+
+        RectTransform prefabRT = this.controlBinderPrefab.GetComponent<RectTransform>();
+        this.controlBinderPrefab.transform.localScale = prefabRT.localScale =  Vector3.one;//just in case
+   
+
+        //RectTransform rt = (RectTransform)this.controlBinderPrefab.transform;
+        //Debug.Log($"Element Test method  rect  {rt.sizeDelta}");
+        //float width = GetComponent<SpriteRenderer>().bounds.size.x;
+        //Debug.Log($"Element Test method  rect  {width}");
+
+        //for now we have to set the heights and widths manually because I havent been able to figure out how to get the prefab to have non-zero width and height 
+        float elementHeight = 50f;// prefabRT.rect.height;
+        float elementWidth = 380f;//prefabRT.rect.height;
+        prefabRT.rect.Set(0, 0, elementWidth, elementHeight);
+
+        Debug.Log($"Element Rect rect  {prefabRT.rect}");
+        float placerStartX = 0 + (elementWidth/2);// -(parentWidth/2);//start at left? right now parent is placed using top, left and elements are placed via center 
+        float placerStartY = 0 - elementHeight;//start at top, then move the height down
+        float placerIntervalY = -elementHeight - 20; //go down
+        int currentInterval = 0;//track where we are
+
+        //maybe helpful? https://answers.unity.com/questions/1748577/ui-issue-when-instantiating-ui-prefabs-at-runtime.html
+
         foreach (InputAction action in this.playerInputs.actions)
         {
-     
             //TODO: get working with the scroller
 
-
             //create a controlbinder as a child of the scroller
-            GameObject controlBinder = Instantiate(this.controlBinderPrefab, this.ControlsOptionsMenu.transform.Find("BindingsScroller").transform.Find("Viewport").transform.Find("Content").transform);
+            GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
+            //GameObject controlBinder = Instantiate(this.controlBinderPrefab) as GameObject;
+            //controlBinder.transform.SetParent(instanceParentObject, false);
             //controlBinder.transform.localPosition = new Vector3 (0, placerStart + (placerIntervalY * currentInterval), 0); //use .Set if this doesnt work ?
-                                                                                                                         
 
             //TODO: also make sure the recttransform part of the canvas renderer is behaving correctly?
             RectTransform rectTransform = controlBinder.GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector3(0, placerStart + (placerIntervalY * currentInterval), 0);
+            Rect rect = rectTransform.rect;
+            rect.height = elementHeight;
+            rect.width = elementWidth;
             rectTransform.anchorMax = new Vector2(.5f, .5f);
             rectTransform.anchorMin = new Vector2(.5f, .5f);
             rectTransform.pivot = new Vector2(.5f, .5f);
-            //rectTransform.sizeDelta = new Vector2(320, 50);
+            rectTransform.localPosition = new Vector3(placerStartX, placerStartY + (placerIntervalY * currentInterval), 0);
+
+            rectTransform.rect.Set(0, 0, elementWidth, elementHeight);
+
+            //test of  https://answers.unity.com/questions/1748577/ui-issue-when-instantiating-ui-prefabs-at-runtime.html 
+            //RectTransform rectTest = controlBinder.transform as RectTransform;
+            //rectTest.localScale = Vector3.one;
 
             Debug.Log($"Final Rect Transform of {action.name} is {rectTransform.anchorMax}, {rectTransform.anchorMin}, {rectTransform.pivot}, {rectTransform.sizeDelta}");
 
@@ -528,15 +562,12 @@ public class EscapeMenuScripts : MonoBehaviour
             //add the appropriate listener to the button 
             buttonObject.GetComponent<Button>().onClick.AddListener( () => OnRebindClick(action.name) ); //delegate { OnRebindClick(action.name); } [both of these work]
 
-
             //Debug.Log($"Final Rect Transform of {action.name} is {rectTransform}");
-
 
             //Debug.Log($"New local Position Vector of {action.name} should be {new Vector3(0, placerStart + (placerIntervalY * currentInterval), 0)}");
             Debug.Log($"Created ControlBinder {action.name} at {controlBinder.transform.localPosition}");
 
             currentInterval++;
-
         }
 
     }
