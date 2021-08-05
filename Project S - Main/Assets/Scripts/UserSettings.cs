@@ -193,7 +193,7 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
 
     private void Awake()
     {
-        //Debug.Log("User Settings instance up and running from awake woot!");
+        Debug.Log("<color=blue>User Settings instance up and running from awake woot!</color> ");
         //Debug.Log(PlayerPrefs)
         settingsFilePath = Path.Combine(Application.persistentDataPath, settingsFileName);
         bool settingsFileExists = File.Exists(settingsFilePath);

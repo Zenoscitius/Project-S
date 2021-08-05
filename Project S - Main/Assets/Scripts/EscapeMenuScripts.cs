@@ -433,7 +433,8 @@ public class EscapeMenuScripts : MonoBehaviour
 
 
     //function that the rebind button triggers (it will have the string be statically in there, generated when the instances are made) 
-    public void OnRebindClick(string actionName)
+    //TODO: allow rebindng of composite ones 
+    public void OnRebindClick(string actionName, int bindingIndex = 0)
     {
         Debug.Log($"Click on rebind of : {actionName}");
         InputAction targetAction = this.menuInputs.currentActionMap.FindAction(actionName);
@@ -446,7 +447,7 @@ public class EscapeMenuScripts : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("Escape Menu Scripts");
+        Debug.Log("<color=purple>Escape Menu Scripts</color>");
 
         Debug.Log($"temp init spot for userSettings {UserSettings.Instance}");
         //Debug.Log(UserSettings.Instance);
@@ -462,7 +463,7 @@ public class EscapeMenuScripts : MonoBehaviour
         this.ControlsOptionsMenu = gameObject.transform.Find("ControlsOptionsMenu").gameObject;
         this.OtherOptionsMenu = gameObject.transform.Find("OtherOptionsMenu").gameObject;
 
-        //disable/hide the menus 
+        // disable/hide the menus initially
         this.EscapeMenu.SetActive(false);
         this.OptionsMenu.SetActive(false);
         this.VideoOptionsMenu.SetActive(false);
@@ -499,23 +500,27 @@ public class EscapeMenuScripts : MonoBehaviour
         float parentHeight = instanceParentObject.GetComponent<RectTransform>().rect.height;
         //Debug.Log($"Parent Rect sizeDelta {instanceParentObject.GetComponent<RectTransform>().sizeDelta}");
         //Debug.Log($"Parent Rect position {instanceParentObject.GetComponent<RectTransform>().position}");
-        Debug.Log($"Parent Rect rect {instanceParentObject.GetComponent<RectTransform>().rect}");
+        //Debug.Log($"Parent Rect rect {instanceParentObject.GetComponent<RectTransform>().rect}");
 
         RectTransform prefabRT = this.controlBinderPrefab.GetComponent<RectTransform>();
         this.controlBinderPrefab.transform.localScale = prefabRT.localScale =  Vector3.one;//just in case
-   
 
+        prefabRT.ForceUpdateRectTransforms();
         //RectTransform rt = (RectTransform)this.controlBinderPrefab.transform;
         //Debug.Log($"Element Test method  rect  {rt.sizeDelta}");
         //float width = GetComponent<SpriteRenderer>().bounds.size.x;
         //Debug.Log($"Element Test method  rect  {width}");
 
         //for now we have to set the heights and widths manually because I havent been able to figure out how to get the prefab to have non-zero width and height 
-        float elementHeight = 50f;// prefabRT.rect.height;
-        float elementWidth = 380f;//prefabRT.rect.height;
+        //prefabRT.transform.SetParent(instanceParentObject, false); //not allowed
+        float elementHeight = prefabRT.sizeDelta.y;
+        float elementWidth = prefabRT.sizeDelta.x;
+        //Debug.Log($"Element sizeDelta  {elementWidth}, {elementHeight}");
+        elementHeight = 50f;// prefabRT.rect.height;
+         elementWidth = 380f;//prefabRT.rect.height;
         prefabRT.rect.Set(0, 0, elementWidth, elementHeight);
-
-        Debug.Log($"Element Rect rect  {prefabRT.rect}");
+      
+        //Debug.Log($"Element Rect  {prefabRT.rect}");
         float placerStartX = 0 + (elementWidth/2);// -(parentWidth/2);//start at left? right now parent is placed using top, left and elements are placed via center 
         float placerStartY = 0 - elementHeight;//start at top, then move the height down
         float placerIntervalY = -elementHeight - 20; //go down
@@ -523,10 +528,35 @@ public class EscapeMenuScripts : MonoBehaviour
 
         //maybe helpful? https://answers.unity.com/questions/1748577/ui-issue-when-instantiating-ui-prefabs-at-runtime.html
 
+
+        //TODO: revisit these to make some of the sizes reactive to the text inside of them  https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/HOWTO-UIFitContentSize.html
+
         foreach (InputAction action in this.playerInputs.actions)
         {
+            //DumpToConsole(action);
+            //Debug.Log($"Action bindings {JsonUtility.ToJson(action.bindings, true)}");
+            //Debug.Log($"Action controls {JsonUtility.ToJson(action.controls, true)}");
+            //Debug.Log($"Action interactions {JsonUtility.ToJson(action.interactions, true)}");
+            //Debug.Log($"Action object {action}");
             //TODO: get working with the scroller
 
+            InputBinding currentComposite = action.bindings[0];
+            foreach (InputBinding actionBinding in action.bindings)
+            {
+                if (actionBinding.isComposite)
+                {
+                    //Debug.Log($"this binding is composite {actionBinding}");
+                    currentComposite = actionBinding;
+                }
+                else if(actionBinding.isPartOfComposite )
+                {
+                    //Debug.Log($"this binding is part of the a composite {actionBinding}");
+                    CreateUIControlBinder(instanceParentObject, action.GetBindingDisplayString() + actionBinding.name, actionBinding.ToDisplayString());
+                }
+            }
+ 
+               //todo:make a function 
+            
             //create a controlbinder as a child of the scroller
             GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
             //GameObject controlBinder = Instantiate(this.controlBinderPrefab) as GameObject;
@@ -536,20 +566,23 @@ public class EscapeMenuScripts : MonoBehaviour
             //TODO: also make sure the recttransform part of the canvas renderer is behaving correctly?
             RectTransform rectTransform = controlBinder.GetComponent<RectTransform>();
             Rect rect = rectTransform.rect;
-            rect.height = elementHeight;
-            rect.width = elementWidth;
+            //rect.height = elementHeight;
+            //rect.width = elementWidth;
             rectTransform.anchorMax = new Vector2(.5f, .5f);
             rectTransform.anchorMin = new Vector2(.5f, .5f);
             rectTransform.pivot = new Vector2(.5f, .5f);
-            rectTransform.localPosition = new Vector3(placerStartX, placerStartY + (placerIntervalY * currentInterval), 0);
-
-            rectTransform.rect.Set(0, 0, elementWidth, elementHeight);
+            //rectTransform.localPosition = new Vector3(placerStartX, placerStartY + (placerIntervalY * currentInterval), 0);
+            //rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, elementWidth);
+            //rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, elementHeight);
+            //rectTransform.ForceUpdateRectTransforms();
+            //rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge, 5f, elementWidth); 
+            //rectTransform.rect.Set(0, 0, elementWidth, elementHeight);
 
             //test of  https://answers.unity.com/questions/1748577/ui-issue-when-instantiating-ui-prefabs-at-runtime.html 
             //RectTransform rectTest = controlBinder.transform as RectTransform;
             //rectTest.localScale = Vector3.one;
 
-            Debug.Log($"Final Rect Transform of {action.name} is {rectTransform.anchorMax}, {rectTransform.anchorMin}, {rectTransform.pivot}, {rectTransform.sizeDelta}");
+            //Debug.Log($"Final Rect Transform of {action.name} is {rectTransform.anchorMax}, {rectTransform.anchorMin}, {rectTransform.pivot}, {rectTransform.sizeDelta}");
 
             //Get and update the label 
             GameObject labelObject = controlBinder.transform.Find("Label").gameObject;
@@ -557,20 +590,60 @@ public class EscapeMenuScripts : MonoBehaviour
 
             //Get and update the button
             GameObject buttonObject = controlBinder.transform.Find("Binding").gameObject; 
-            buttonObject.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(action.GetBindingDisplayString() );
+            buttonObject.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(action.GetBindingDisplayString(0) );
+
+            //TODO: add buttons for the 2 allowed sets (M+K vs Gamepad default, but separation not enforced--DMC does this)
+            //TODO: add split for the directionals 
+
 
             //add the appropriate listener to the button 
             buttonObject.GetComponent<Button>().onClick.AddListener( () => OnRebindClick(action.name) ); //delegate { OnRebindClick(action.name); } [both of these work]
 
             //Debug.Log($"Final Rect Transform of {action.name} is {rectTransform}");
-
             //Debug.Log($"New local Position Vector of {action.name} should be {new Vector3(0, placerStart + (placerIntervalY * currentInterval), 0)}");
-            Debug.Log($"Created ControlBinder {action.name} at {controlBinder.transform.localPosition}");
+            //Debug.Log($"Created ControlBinder {action.name} at {controlBinder.transform.localPosition}");
 
             currentInterval++;
         }
 
     }
+
+    private void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel)
+    {
+        //create a controlbinder as a child of the scroller
+        GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
+
+        //TODO: also make sure the recttransform part of the canvas renderer is behaving correctly?
+        RectTransform rectTransform = controlBinder.GetComponent<RectTransform>();
+        Rect rect = rectTransform.rect;
+
+        rectTransform.anchorMax = new Vector2(.5f, .5f);
+        rectTransform.anchorMin = new Vector2(.5f, .5f);
+        rectTransform.pivot = new Vector2(.5f, .5f);
+
+        //Get and update the label 
+        GameObject labelObject = controlBinder.transform.Find("Label").gameObject;
+        labelObject.GetComponent<TMP_Text>().SetText(actionName);
+
+        //Get and update the button
+        GameObject buttonObject = controlBinder.transform.Find("Binding").gameObject;
+        buttonObject.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(buttonLabel);
+
+        //TODO: add buttons for the 2 allowed sets (M+K vs Gamepad default, but separation not enforced--DMC does this)
+        //TODO: add split for the directionals 
+
+        //add the appropriate listener to the button 
+        buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
+    }
+
+
+    public static void DumpToConsole(object obj)
+    {
+        var output = JsonUtility.ToJson(obj, true);
+        Debug.Log($"Object Dump: {output}");
+    }
+
+
 
     // Update is called once per frame
     void Update()
