@@ -63,5 +63,15 @@ public static class DataManager
         //JsonUtility.FromJsonOverwrite(json, myObject);
     }
 
+    public static void DumpToConsole(object obj)
+    {
+        var output = JsonUtility.ToJson(obj, true);
+        Debug.Log($"Object Dump: {output}");
+    }
+    public static string ConvertObjToJson(object obj)
+    {
+        return JsonUtility.ToJson(obj, true);
+
+    }
 
 }

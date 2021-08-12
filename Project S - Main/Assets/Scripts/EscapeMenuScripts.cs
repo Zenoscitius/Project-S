@@ -9,7 +9,7 @@ using UnityEditor;
 using UnityEngine.Audio;
 //using static UserSettings; 
 
-public class EscapeMenuScripts : MonoBehaviour
+public class EscapeMenuScripts : MenuScripts
 {
     private Resolution[] resolutions;
     private int curSelectedResIndex; 
@@ -269,6 +269,8 @@ public class EscapeMenuScripts : MonoBehaviour
     {
         List<string> validDisplayOptions = new List<string>();
 
+        
+
         //TODO: decide how to handle refresh rates, framerate caps, vsync,
         for (int i=0; i < resolutions.Length; i++)
         {
@@ -277,8 +279,6 @@ public class EscapeMenuScripts : MonoBehaviour
 
             //if this is the currently in use resolution, note so
             //if (resolutions[i].width == Screen.width && resolutions[i].height == Screen.height && resolutions[i].refreshRate == Screen.refreshRate)
-
-
 
             if (resolutions[i].width == Screen.currentResolution.width && resolutions[i].height == Screen.currentResolution.height && resolutions[i].refreshRate == Screen.currentResolution.refreshRate)
             {
@@ -408,30 +408,6 @@ public class EscapeMenuScripts : MonoBehaviour
     }
 
 
-    //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.InputActionRebindingExtensions.RebindingOperation.html
-    //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/HowDoI.html
-    //https://docs.unity3d.com/Packages/com.unity.inputsystem@0.1/api/UnityEngine.Experimental.Input.InputActionRebindingExtensions.RebindingOperation.html
-    public void RebindAction(InputAction actionToRebind)
-    {
-        Debug.Log($"Attempting to rebind an action... {actionToRebind}");
-        //var rebind = new InputActionRebindingExtensions.RebindingOperation()
-        //.WithAction(myAction)
-        //.WithBindingGroup("Gamepad")
-        //.WithCancelingThrough("<Keyboard>/escape");
-
-        var rebindOperation = actionToRebind.PerformInteractiveRebinding()
-            .WithControlsExcluding("<Pointer>/position") // Don"t bind to mouse positionS
-            .WithControlsExcluding("<Pointer>/delta") // Don"t bind to mouse movement deltas
-            .WithCancelingThrough("<Keyboard>/escape")
-            .OnMatchWaitForAnother(0.1f)
-            .OnComplete( operation => {
-                Debug.Log($"Rebound '{actionToRebind}' to '{operation.selectedControl}'");
-                operation.Dispose();
-            })
-            .Start();
-    }
-
-
     //function that the rebind button triggers (it will have the string be statically in there, generated when the instances are made) 
     //TODO: allow rebindng of composite ones 
     public void OnRebindClick(string actionName, int bindingIndex = 0)
@@ -440,7 +416,7 @@ public class EscapeMenuScripts : MonoBehaviour
         InputAction targetAction = this.menuInputs.currentActionMap.FindAction(actionName);
         if(targetAction == null) targetAction = this.playerInputs.currentActionMap.FindAction(actionName);
         if (targetAction == null) Debug.LogWarning($"No action found for string name: {actionName}");
-        else RebindAction(targetAction);
+        else UserSettings.Instance.RebindAction(targetAction);
     }
 
 
@@ -451,6 +427,24 @@ public class EscapeMenuScripts : MonoBehaviour
 
         Debug.Log($"temp init spot for userSettings {UserSettings.Instance}");
         //Debug.Log(UserSettings.Instance);
+
+
+
+        //let unity get the valid detected screen resolutions (only works from exe not in editor allegedly) 
+        this.resolutions = Screen.resolutions;
+        UserSettings.Instance.UpdateResolution();
+        this.resolutionsDropdown = VideoOptionsMenu.transform.Find("ResolutionsDropdown").gameObject.GetComponent<TMP_Dropdown>();
+        SetResolutionOptions();
+
+
+
+        //setup initial volumes 
+        //TODO: have a location that saves the value between sessions that we grab from;
+        //TODO: move functions to settings and/or datamanager
+        float mainVolume = GetMainVolume();
+        this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
+
+
 
 
         //TODO setup a data structure that holds the hierarchy information so its more generalized
@@ -479,37 +473,16 @@ public class EscapeMenuScripts : MonoBehaviour
         //Debug.Log(this.menuInputs);
         //Debug.Log(this.playerInputs);
 
-
-        //let unity get the valid detected screen resolutions (only works from exe not in editor allegedly) 
-        this.resolutions =  Screen.resolutions;
-        this.resolutionsDropdown = VideoOptionsMenu.transform.Find("ResolutionsDropdown").gameObject.GetComponent<TMP_Dropdown>();
-        SetResolutionOptions();
-  
-
-
-        //setup initial volumes 
-        //TODO: have a location that saves the value between sessions that we grab from;
-        float mainVolume = GetMainVolume();
-        this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
-
-
-
         //setup controls display
         Transform instanceParentObject = this.ControlsOptionsMenu.transform.Find("BindingsScroller").transform.Find("Viewport").transform.Find("Content").transform;
         float parentWidth = instanceParentObject.GetComponent<RectTransform>().rect.width;
         float parentHeight = instanceParentObject.GetComponent<RectTransform>().rect.height;
-        //Debug.Log($"Parent Rect sizeDelta {instanceParentObject.GetComponent<RectTransform>().sizeDelta}");
-        //Debug.Log($"Parent Rect position {instanceParentObject.GetComponent<RectTransform>().position}");
-        //Debug.Log($"Parent Rect rect {instanceParentObject.GetComponent<RectTransform>().rect}");
 
         RectTransform prefabRT = this.controlBinderPrefab.GetComponent<RectTransform>();
         this.controlBinderPrefab.transform.localScale = prefabRT.localScale =  Vector3.one;//just in case
 
         prefabRT.ForceUpdateRectTransforms();
-        //RectTransform rt = (RectTransform)this.controlBinderPrefab.transform;
-        //Debug.Log($"Element Test method  rect  {rt.sizeDelta}");
-        //float width = GetComponent<SpriteRenderer>().bounds.size.x;
-        //Debug.Log($"Element Test method  rect  {width}");
+   
 
         //for now we have to set the heights and widths manually because I havent been able to figure out how to get the prefab to have non-zero width and height 
         //prefabRT.transform.SetParent(instanceParentObject, false); //not allowed
@@ -559,15 +532,10 @@ public class EscapeMenuScripts : MonoBehaviour
             
             //create a controlbinder as a child of the scroller
             GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
-            //GameObject controlBinder = Instantiate(this.controlBinderPrefab) as GameObject;
-            //controlBinder.transform.SetParent(instanceParentObject, false);
-            //controlBinder.transform.localPosition = new Vector3 (0, placerStart + (placerIntervalY * currentInterval), 0); //use .Set if this doesnt work ?
 
             //TODO: also make sure the recttransform part of the canvas renderer is behaving correctly?
             RectTransform rectTransform = controlBinder.GetComponent<RectTransform>();
             Rect rect = rectTransform.rect;
-            //rect.height = elementHeight;
-            //rect.width = elementWidth;
             rectTransform.anchorMax = new Vector2(.5f, .5f);
             rectTransform.anchorMin = new Vector2(.5f, .5f);
             rectTransform.pivot = new Vector2(.5f, .5f);
@@ -577,12 +545,6 @@ public class EscapeMenuScripts : MonoBehaviour
             //rectTransform.ForceUpdateRectTransforms();
             //rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge, 5f, elementWidth); 
             //rectTransform.rect.Set(0, 0, elementWidth, elementHeight);
-
-            //test of  https://answers.unity.com/questions/1748577/ui-issue-when-instantiating-ui-prefabs-at-runtime.html 
-            //RectTransform rectTest = controlBinder.transform as RectTransform;
-            //rectTest.localScale = Vector3.one;
-
-            //Debug.Log($"Final Rect Transform of {action.name} is {rectTransform.anchorMax}, {rectTransform.anchorMin}, {rectTransform.pivot}, {rectTransform.sizeDelta}");
 
             //Get and update the label 
             GameObject labelObject = controlBinder.transform.Find("Label").gameObject;
@@ -595,14 +557,8 @@ public class EscapeMenuScripts : MonoBehaviour
             //TODO: add buttons for the 2 allowed sets (M+K vs Gamepad default, but separation not enforced--DMC does this)
             //TODO: add split for the directionals 
 
-
             //add the appropriate listener to the button 
             buttonObject.GetComponent<Button>().onClick.AddListener( () => OnRebindClick(action.name) ); //delegate { OnRebindClick(action.name); } [both of these work]
-
-            //Debug.Log($"Final Rect Transform of {action.name} is {rectTransform}");
-            //Debug.Log($"New local Position Vector of {action.name} should be {new Vector3(0, placerStart + (placerIntervalY * currentInterval), 0)}");
-            //Debug.Log($"Created ControlBinder {action.name} at {controlBinder.transform.localPosition}");
-
             currentInterval++;
         }
 
@@ -636,12 +592,6 @@ public class EscapeMenuScripts : MonoBehaviour
         buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
     }
 
-
-    public static void DumpToConsole(object obj)
-    {
-        var output = JsonUtility.ToJson(obj, true);
-        Debug.Log($"Object Dump: {output}");
-    }
 
 
 

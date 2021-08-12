@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine.UIElements;
 
 
-public class StartMenuScripts : MonoBehaviour
+public class StartMenuScripts : MenuScripts
 {
     // Start is called before the first frame update
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
