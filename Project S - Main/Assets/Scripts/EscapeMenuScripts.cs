@@ -11,13 +11,14 @@ using UnityEngine.Audio;
 
 public class EscapeMenuScripts : MenuScripts
 {
+    public static bool gamePaused = false;
+
     private Resolution[] resolutions;
     private int curSelectedResIndex; 
 
     //https://www.red-gate.com/simple-talk/dotnet/c-programming/how-to-create-a-settings-menu-in-unity/
     //https://www.youtube.com/watch?v=ElqAoS2FEDo
-
-    public static bool gamePaused = false;
+ 
     private GameObject EscapeMenu; //visual part of the menu; NOT the wrapper
     private GameObject OptionsMenu; //
     private GameObject VideoOptionsMenu;
@@ -27,21 +28,16 @@ public class EscapeMenuScripts : MenuScripts
 
     private GameObject currentActiveMenu; //which of the above menus is presently active, null if none
 
-
     public TMP_Dropdown resolutionsDropdown;
 
-
-    public GameObject controlBinderPrefab;
-
+    //public GameObject controlBinderPrefab;
 
     public GameObject playerCharacter; //added in since it seems the objects passed via the events are actually clones so cant access real action maps...
 
     public int currentMenuPosition = 1; //for keyboard navigation tracking
 
-    public AudioMixer audioMixer;
-
-    private PlayerInput menuInputs = null;
-    private PlayerInput playerInputs = null;
+    //private PlayerInput menuInputs = null;
+    //private PlayerInput playerInputs = null;
 
     //private  navigationTree;
 
@@ -182,7 +178,6 @@ public class EscapeMenuScripts : MenuScripts
 
         this.currentActiveMenu.SetActive(true);
 
-
         //// iterate through all first level children
         //foreach (Transform child in gameObject.transform)
         //{
@@ -269,8 +264,6 @@ public class EscapeMenuScripts : MenuScripts
     {
         List<string> validDisplayOptions = new List<string>();
 
-        
-
         //TODO: decide how to handle refresh rates, framerate caps, vsync,
         for (int i=0; i < resolutions.Length; i++)
         {
@@ -287,7 +280,7 @@ public class EscapeMenuScripts : MenuScripts
         }
 
         validDisplayOptions.Reverse();
-        curSelectedResIndex = validDisplayOptions.Count - (curSelectedResIndex + 1); //correct index
+        curSelectedResIndex = validDisplayOptions.Count - (curSelectedResIndex + 1); //correct the index
 
         //fix the resolution list display 
         this.resolutionsDropdown.ClearOptions();
@@ -296,22 +289,7 @@ public class EscapeMenuScripts : MenuScripts
         this.resolutionsDropdown.RefreshShownValue(); //just in case?
     }
 
-
-    public void OnResolutionSelect(int eventData)
-    {
-        Debug.Log("Resolution Selected: " + eventData);
-        int resArrayIndex = resolutions.Length - (eventData + 1); //correct the visual array index vs actual index
-        SetResolution(resArrayIndex);
-
-        //Image buttonBackground = selectedButton.GetComponent<Image>();
-        //Debug.Log(buttonBackground.color);
-        //buttonBackground.color = new Color(255, 255, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
-        //Debug.Log(buttonBackground.color);
-
-       
-    }
-
-    public void SetResolution( int resArrayIndex)
+    public void SetResolution(int resArrayIndex)
     {
         Debug.Log("Resolution Selected at Index: " + resArrayIndex);
         curSelectedResIndex = resArrayIndex;
@@ -328,13 +306,24 @@ public class EscapeMenuScripts : MenuScripts
         UserSettings.Instance.SaveUserSettingsToFile();
     }
 
+    public void OnResolutionSelect(int eventData)
+    {
+        Debug.Log("Resolution Selected: " + eventData);
+        int resArrayIndex = resolutions.Length - (eventData + 1); //correct the visual array index vs actual index
+        SetResolution(resArrayIndex);
+
+        //Image buttonBackground = selectedButton.GetComponent<Image>();
+        //Debug.Log(buttonBackground.color);
+        //buttonBackground.color = new Color(255, 255, 255, 1); //keep updated to whatever it actually is OR keep a holder var somewhere
+        //Debug.Log(buttonBackground.color);
+
+    }
 
     public void OnUpdateVsync(bool newValue)
     {
         UserSettings.Instance.isVsynced = newValue;
         UserSettings.Instance.SaveUserSettingsToFile();
     }
-
     public void OnUpdateWindowed(bool newValue)
     {
         UserSettings.Instance.isFullscreen = !newValue;
@@ -355,69 +344,20 @@ public class EscapeMenuScripts : MenuScripts
     //https://hextantstudios.com/unity-custom-settings/
     //https://support.unity.com/hc/en-us/articles/115000177803-How-can-I-modify-Project-Settings-via-scripting-
 
-
-    public void UpdateMainVolume(float newValue)
-    {
-        //Debug.Log($"New setting: {newValue} ");
-        const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
-        SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
-        SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
-
-        m_Volume.floatValue = newValue;
-        audioManager.ApplyModifiedProperties();
-    }
-
-
-    public float GetMainVolume()
-    {
-        const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
-        SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
-        SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
-
-        return m_Volume.floatValue;
-    }
-
-
     public void OnUpdateMainVolume(float newValue)
     {
         //TODO: consider having this operate on the mixer instead of the main project volume?  project volume is probably better due to core integration or something
         //Debug.Log($"New setting: {newValue} ");
-        UpdateMainVolume(newValue);
+        UserSettings.Instance.SetVolume("main", newValue);
     }
 
 
-    public void OnUpdateFXVolume(float newValue) { SetVolume("FXVolume", newValue); }
-    public void OnUpdateMusicVolume(float newValue) { SetVolume("MusicVolume", newValue); }
-    public void OnUpdateVoicesVolume(float newValue) { SetVolume("VoicesVolume", newValue); }
+    public void OnUpdateFXVolume(float newValue) { UserSettings.Instance.SetVolume("FXVolume", newValue); }
+    public void OnUpdateMusicVolume(float newValue) { UserSettings.Instance.SetVolume("MusicVolume", newValue); }
+    public void OnUpdateVoicesVolume(float newValue) { UserSettings.Instance.SetVolume("VoicesVolume", newValue); }
 
     //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
     //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
-    public void SetVolume(string type, float newValue)
-    {
-        if (newValue > 0) //when log doesnt break and it technically still makes noise
-        {
-            float convertedVolume = Mathf.Log10(newValue) * 20;
-            audioMixer.SetFloat(type, convertedVolume);
-            Debug.Log($"New volume: {convertedVolume} ");
-        }
-        else //should mute instead (seems we cant access that option directly via script--just set to absolute min volume instead?
-        {
-            audioMixer.SetFloat(type, -80f);
-        }
-     
-    }
-
-
-    //function that the rebind button triggers (it will have the string be statically in there, generated when the instances are made) 
-    //TODO: allow rebindng of composite ones 
-    public void OnRebindClick(string actionName, int bindingIndex = 0)
-    {
-        Debug.Log($"Click on rebind of : {actionName}");
-        InputAction targetAction = this.menuInputs.currentActionMap.FindAction(actionName);
-        if(targetAction == null) targetAction = this.playerInputs.currentActionMap.FindAction(actionName);
-        if (targetAction == null) Debug.LogWarning($"No action found for string name: {actionName}");
-        else UserSettings.Instance.RebindAction(targetAction);
-    }
 
 
     // Start is called before the first frame update
@@ -427,25 +367,6 @@ public class EscapeMenuScripts : MenuScripts
 
         Debug.Log($"temp init spot for userSettings {UserSettings.Instance}");
         //Debug.Log(UserSettings.Instance);
-
-
-
-        //let unity get the valid detected screen resolutions (only works from exe not in editor allegedly) 
-        this.resolutions = Screen.resolutions;
-        UserSettings.Instance.UpdateResolution();
-        this.resolutionsDropdown = VideoOptionsMenu.transform.Find("ResolutionsDropdown").gameObject.GetComponent<TMP_Dropdown>();
-        SetResolutionOptions();
-
-
-
-        //setup initial volumes 
-        //TODO: have a location that saves the value between sessions that we grab from;
-        //TODO: move functions to settings and/or datamanager
-        float mainVolume = GetMainVolume();
-        this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
-
-
-
 
         //TODO setup a data structure that holds the hierarchy information so its more generalized
         //Otherwise turns these back into public vars that you use the inspector to assign 
@@ -457,7 +378,7 @@ public class EscapeMenuScripts : MenuScripts
         this.ControlsOptionsMenu = gameObject.transform.Find("ControlsOptionsMenu").gameObject;
         this.OtherOptionsMenu = gameObject.transform.Find("OtherOptionsMenu").gameObject;
 
-        // disable/hide the menus initially
+        // disable/hide the menus initially;  if they are null here there be a problem
         this.EscapeMenu.SetActive(false);
         this.OptionsMenu.SetActive(false);
         this.VideoOptionsMenu.SetActive(false);
@@ -470,38 +391,52 @@ public class EscapeMenuScripts : MenuScripts
         this.playerInputs = playerCharacter.GetComponent<PlayerInput>(); //grab reference to player input controller
         this.menuInputs.currentActionMap.Disable(); //we need it to start disable atm since player is what has initial control (until we make more changes probably)
 
+
+        //let unity get the valid detected screen resolutions (only works from exe not in editor allegedly) 
+        this.resolutions = Screen.resolutions;
+        UserSettings.Instance.UpdateResolution();
+        this.resolutionsDropdown = VideoOptionsMenu.transform.Find("ResolutionsDropdown").gameObject.GetComponent<TMP_Dropdown>();
+        SetResolutionOptions();
+
+
+        //setup initial volumes 
+        //TODO: have a location that saves the value between sessions that we grab from;
+        //TODO: move functions to settings and/or datamanager
+        float mainVolume = UserSettings.Instance.GetVolume("main");
+        this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
+
+
+
         //Debug.Log(this.menuInputs);
         //Debug.Log(this.playerInputs);
 
         //setup controls display
         Transform instanceParentObject = this.ControlsOptionsMenu.transform.Find("BindingsScroller").transform.Find("Viewport").transform.Find("Content").transform;
-        float parentWidth = instanceParentObject.GetComponent<RectTransform>().rect.width;
-        float parentHeight = instanceParentObject.GetComponent<RectTransform>().rect.height;
+        //float parentWidth = instanceParentObject.GetComponent<RectTransform>().rect.width;
+        //float parentHeight = instanceParentObject.GetComponent<RectTransform>().rect.height;
 
-        RectTransform prefabRT = this.controlBinderPrefab.GetComponent<RectTransform>();
-        this.controlBinderPrefab.transform.localScale = prefabRT.localScale =  Vector3.one;//just in case
+        //RectTransform prefabRT = this.controlBinderPrefab.GetComponent<RectTransform>();
+        //this.controlBinderPrefab.transform.localScale = prefabRT.localScale =  Vector3.one;//just in case
 
-        prefabRT.ForceUpdateRectTransforms();
+        //prefabRT.ForceUpdateRectTransforms();
    
 
         //for now we have to set the heights and widths manually because I havent been able to figure out how to get the prefab to have non-zero width and height 
         //prefabRT.transform.SetParent(instanceParentObject, false); //not allowed
-        float elementHeight = prefabRT.sizeDelta.y;
-        float elementWidth = prefabRT.sizeDelta.x;
+        //float elementHeight = prefabRT.sizeDelta.y;
+        //float elementWidth = prefabRT.sizeDelta.x;
         //Debug.Log($"Element sizeDelta  {elementWidth}, {elementHeight}");
-        elementHeight = 50f;// prefabRT.rect.height;
-         elementWidth = 380f;//prefabRT.rect.height;
-        prefabRT.rect.Set(0, 0, elementWidth, elementHeight);
+        //elementHeight = 50f;// prefabRT.rect.height;
+        //elementWidth = 380f;//prefabRT.rect.height;
+        //prefabRT.rect.Set(0, 0, elementWidth, elementHeight);
       
-        //Debug.Log($"Element Rect  {prefabRT.rect}");
-        float placerStartX = 0 + (elementWidth/2);// -(parentWidth/2);//start at left? right now parent is placed using top, left and elements are placed via center 
-        float placerStartY = 0 - elementHeight;//start at top, then move the height down
-        float placerIntervalY = -elementHeight - 20; //go down
-        int currentInterval = 0;//track where we are
+  
+        //float placerStartX = 0 + (elementWidth/2);// (parentWidth/2);//start at left? right now parent is placed using top, left and elements are placed via center 
+        //float placerStartY = 0 - elementHeight;//start at top, then move the height down
+        //float placerIntervalY = -elementHeight - 20; //go down
+        //int currentInterval = 0;//track where we are
 
         //maybe helpful? https://answers.unity.com/questions/1748577/ui-issue-when-instantiating-ui-prefabs-at-runtime.html
-
-
         //TODO: revisit these to make some of the sizes reactive to the text inside of them  https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/HOWTO-UIFitContentSize.html
 
         foreach (InputAction action in this.playerInputs.actions)
@@ -559,41 +494,11 @@ public class EscapeMenuScripts : MenuScripts
 
             //add the appropriate listener to the button 
             buttonObject.GetComponent<Button>().onClick.AddListener( () => OnRebindClick(action.name) ); //delegate { OnRebindClick(action.name); } [both of these work]
-            currentInterval++;
+            
+            //currentInterval++;
         }
 
     }
-
-    private void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel)
-    {
-        //create a controlbinder as a child of the scroller
-        GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
-
-        //TODO: also make sure the recttransform part of the canvas renderer is behaving correctly?
-        RectTransform rectTransform = controlBinder.GetComponent<RectTransform>();
-        Rect rect = rectTransform.rect;
-
-        rectTransform.anchorMax = new Vector2(.5f, .5f);
-        rectTransform.anchorMin = new Vector2(.5f, .5f);
-        rectTransform.pivot = new Vector2(.5f, .5f);
-
-        //Get and update the label 
-        GameObject labelObject = controlBinder.transform.Find("Label").gameObject;
-        labelObject.GetComponent<TMP_Text>().SetText(actionName);
-
-        //Get and update the button
-        GameObject buttonObject = controlBinder.transform.Find("Binding").gameObject;
-        buttonObject.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(buttonLabel);
-
-        //TODO: add buttons for the 2 allowed sets (M+K vs Gamepad default, but separation not enforced--DMC does this)
-        //TODO: add split for the directionals 
-
-        //add the appropriate listener to the button 
-        buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
-    }
-
-
-
 
     // Update is called once per frame
     void Update()
