@@ -55,27 +55,47 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     //https://docs.unity3d.com/ScriptReference/PlayerPrefs.html
     //https://docs.unity3d.com/Manual/class-PlayerSettings.html
 
-    public bool isFullscreen = true;// Screen.fullScreen;
-    public bool isResizable = false; //!Screen.fullScreen;
-    public bool isVsynced = false;
-    public SaveResolution saveResolution;
-    private Resolution currentResolution;//  Screen.currentResolution;?
-    public AudioMixer audioMixer;
 
     //TODO: maybe change the name and expand beyond just resolution-- such as other screen data
     [System.Serializable]
-    public struct SaveResolution
+    public struct ScreenData
     {
-        public int height;
+        public bool isFullscreen;
+        public bool isResizable;
+        public bool isVsynced;
         public int width;
+        public int height;
         public int refreshRate;
 
-        //public bool isFullscreen;
-        //public bool isResizable;
-        //public bool isVsynced;
-
+        //public ScreenData(bool isFullscreen, bool isResizable, bool isVsynced)
+        //{
+        //    this.isFullscreen = isFullscreen;// Screen.fullScreen;
+        //    this.isResizable = isResizable; //!Screen.fullScreen;
+        //    this.isVsynced = isVsynced;
+        //}
     }
-   
+
+    //public bool isFullscreen = true;// Screen.fullScreen;
+    //public bool isResizable = false; //!Screen.fullScreen;
+    //public bool isVsynced = false;
+
+
+    [System.Serializable]
+    public struct AudioData
+    {
+        public float MainVolume;
+        public float FXVolume;
+        public float MusicVolume;
+        public float VoicesVolume;
+    }
+
+
+    public ScreenData screenData;
+    public AudioData audioData;
+    private Resolution currentResolution;//  Screen.currentResolution;?
+    public AudioMixer audioMixer;
+
+
     //public PlayerPrefs unitySettings = new PlayerPrefs();
 
     //TODO: determine if this will serialize to json nicely for rebinding 
@@ -92,9 +112,9 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     {
         string json = "{";
 
-        json += "'isFullscreen':'" + isFullscreen.ToString() + "',";
-        json += "'isResizable':'" + isResizable.ToString() + "',";
-        json += "'isVsynced':'" + isVsynced.ToString() + "',";
+        json += "'isFullscreen':'" + screenData.isFullscreen.ToString() + "',";
+        json += "'isResizable':'" + screenData.isResizable.ToString() + "',";
+        json += "'isVsynced':'" + screenData.isVsynced.ToString() + "',";
 
         json += "}";
 
@@ -134,29 +154,41 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     public void SetVolume(string type, float newValue)
     {
         //Debug.Log($"New Audio Setting: {type} @ {newValue} ");
-        if (type == "main")
+        if (type == "main" || type == "MainVolume")
         {
             const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
             SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
             SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
 
-            m_Volume.floatValue = newValue;
+            //update the actual value and the tracking
+            m_Volume.floatValue = this.audioData.MainVolume = newValue;
             audioManager.ApplyModifiedProperties();
+
         }
         else
         {
             if (newValue > 0) //when log doesnt break and it technically still makes noise
             {
                 float convertedVolume = Mathf.Log10(newValue) * 20;
+                //this.audioData.GetType().GetProperty(type).SetValue(audioData, convertedVolume);
                 audioMixer.SetFloat(type, convertedVolume);
                 Debug.Log($"New volume: {convertedVolume} ");
+
+                //update tracking
+                if (type == "FXVolume") this.audioData.FXVolume = newValue;
+                else if (type == "VoicesVolume") this.audioData.VoicesVolume = newValue;
+                else if (type == "MusicVolume") this.audioData.MusicVolume = newValue;
+   
             }
             else //should mute instead (seems we cant access that option directly via script--just set to absolute min volume instead?
             {
+                this.audioData.MainVolume = 0;
                 audioMixer.SetFloat(type, -80f);
             }
         }
-  
+
+        //TODO: trigger save
+        //SaveUserSettingsToFile();
     }
 
     public float GetVolume(string type)
@@ -184,49 +216,23 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     }
 
 
-    /// <summary>
-    /// Trigger a refresh of the currently displayed binding.
-    /// </summary>
-    public void UpdateBindingDisplay()
-    {
-        var displayString = string.Empty;
-        var deviceLayoutName = default(string);
-        var controlPath = default(string);
-
-        // Get display string from action.
-        //var action = m_Action?.action;
-        //if (action != null)
-        //{
-        //    var bindingIndex = action.bindings.IndexOf(x => x.id.ToString() == m_BindingId);
-        //    if (bindingIndex != -1)
-        //        displayString = action.GetBindingDisplayString(bindingIndex, out deviceLayoutName, out controlPath, displayStringOptions);
-        //}
-
-        //// Set on label (if any).
-        //if (m_BindingText != null)
-        //    m_BindingText.text = displayString;
-
-        //// Give listeners a chance to configure UI in response.
-        //m_UpdateBindingUIEvent?.Invoke(this, displayString, deviceLayoutName, controlPath);
-    }
-
-       
-
-
+    //
     public void UpdateResolution(Resolution newResolution)
     {
-        this.saveResolution.height = newResolution.height;
-        this.saveResolution.width = newResolution.width;
-        this.saveResolution.refreshRate = newResolution.refreshRate;
-        Screen.SetResolution(newResolution.width, newResolution.height, Screen.fullScreen, newResolution.refreshRate);
-        this.currentResolution = newResolution;
+        this.screenData.height = newResolution.height;
+        this.screenData.width = newResolution.width;
+        this.screenData.refreshRate = newResolution.refreshRate;
+        Screen.SetResolution(newResolution.width, newResolution.height, this.screenData.isFullscreen, newResolution.refreshRate);
+        //this.currentResolution = newResolution;
     }
+
+    //push saved screendata to live
     public void UpdateResolution()
     {
-        currentResolution.width = this.saveResolution.width;
-        currentResolution.height = this.saveResolution.height;
-        currentResolution.refreshRate = this.saveResolution.refreshRate;
-        Screen.SetResolution(currentResolution.width, currentResolution.height, Screen.fullScreen, currentResolution.refreshRate);
+        //currentResolution.width = this.screenData.width;
+        //currentResolution.height = this.screenData.height;
+        //currentResolution.refreshRate = this.screenData.refreshRate;
+        Screen.SetResolution(this.screenData.width, this.screenData.height, this.screenData.isFullscreen, this.screenData.refreshRate);
     }
 
 
@@ -250,15 +256,23 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         string jsonData = DataManager.LoadJsonDataFromFile(settingsFileName);
 
         Debug.Log($"loaded user settings Json Data: {DataManager.ConvertObjToJson(jsonData)}");
-        Debug.Log($"loaded settngs results: {DataManager.ConvertObjToJson(this)}");
         if (jsonData.Length > 3)
         {
             JsonUtility.FromJsonOverwrite(jsonData, this);
-            
+
             UpdateResolution();
         }
-       
-      
+        Debug.Log($"loaded settngs results: {DataManager.ConvertObjToJson(this)}");
+
+    }
+
+    //sets all default data
+    private void InitializeDefaultData()
+    {
+        this.screenData.isFullscreen = Screen.fullScreen;
+        this.screenData.isResizable = !Screen.fullScreen;
+        this.screenData.isVsynced = false;
+        this.currentResolution = Screen.currentResolution;
     }
 
     private void Awake()
@@ -276,10 +290,7 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         else
         {
             Debug.Log("<color=red>NO User Settings file!  Engage defaults</color>");
-            this.isFullscreen = Screen.fullScreen;
-            this.isResizable = !Screen.fullScreen;
-            this.isVsynced = false;
-            this.currentResolution = Screen.currentResolution;
+            InitializeDefaultData();
         }
 
     }

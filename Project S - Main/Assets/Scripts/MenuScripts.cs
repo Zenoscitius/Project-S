@@ -61,6 +61,41 @@ public class MenuScripts : MonoBehaviour
         if (targetAction == null) targetAction = this.playerInputs.currentActionMap.FindAction(actionName);
         if (targetAction == null) Debug.LogWarning($"No action found for string name: {actionName}");
         else UserSettings.Instance.RebindAction(targetAction);
+
+        UpdateBindingDisplay();
+
+    }
+
+
+
+    /// <summary>
+    /// Trigger a refresh of the currently displayed binding.
+    /// </summary>
+    public void UpdateBindingDisplay()
+    {
+        //var displayString = string.Empty;
+        //var deviceLayoutName = default(string);
+        //var controlPath = default(string);
+
+
+
+
+
+        // Get display string from action.
+        //var action = m_Action?.action;
+        //if (action != null)
+        //{
+        //    var bindingIndex = action.bindings.IndexOf(x => x.id.ToString() == m_BindingId);
+        //    if (bindingIndex != -1)
+        //        displayString = action.GetBindingDisplayString(bindingIndex, out deviceLayoutName, out controlPath, displayStringOptions);
+        //}
+
+        //// Set on label (if any).
+        //if (m_BindingText != null)
+        //    m_BindingText.text = displayString;
+
+        //// Give listeners a chance to configure UI in response.
+        //m_UpdateBindingUIEvent?.Invoke(this, displayString, deviceLayoutName, controlPath);
     }
 
 }

@@ -321,17 +321,17 @@ public class EscapeMenuScripts : MenuScripts
 
     public void OnUpdateVsync(bool newValue)
     {
-        UserSettings.Instance.isVsynced = newValue;
+        UserSettings.Instance.screenData.isVsynced = newValue;
         UserSettings.Instance.SaveUserSettingsToFile();
     }
     public void OnUpdateWindowed(bool newValue)
     {
-        UserSettings.Instance.isFullscreen = !newValue;
+        UserSettings.Instance.screenData.isFullscreen = !newValue;
         UserSettings.Instance.SaveUserSettingsToFile();
     }
     public void OnUpdateResizable(bool newValue)
     {
-        UserSettings.Instance.isResizable = newValue && !UserSettings.Instance.isFullscreen;
+        UserSettings.Instance.screenData.isResizable = newValue && !UserSettings.Instance.screenData.isFullscreen;
         UserSettings.Instance.SaveUserSettingsToFile();
     }
 
@@ -405,36 +405,11 @@ public class EscapeMenuScripts : MenuScripts
         float mainVolume = UserSettings.Instance.GetVolume("main");
         this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
 
-
-
         //Debug.Log(this.menuInputs);
         //Debug.Log(this.playerInputs);
 
         //setup controls display
         Transform instanceParentObject = this.ControlsOptionsMenu.transform.Find("BindingsScroller").transform.Find("Viewport").transform.Find("Content").transform;
-        //float parentWidth = instanceParentObject.GetComponent<RectTransform>().rect.width;
-        //float parentHeight = instanceParentObject.GetComponent<RectTransform>().rect.height;
-
-        //RectTransform prefabRT = this.controlBinderPrefab.GetComponent<RectTransform>();
-        //this.controlBinderPrefab.transform.localScale = prefabRT.localScale =  Vector3.one;//just in case
-
-        //prefabRT.ForceUpdateRectTransforms();
-   
-
-        //for now we have to set the heights and widths manually because I havent been able to figure out how to get the prefab to have non-zero width and height 
-        //prefabRT.transform.SetParent(instanceParentObject, false); //not allowed
-        //float elementHeight = prefabRT.sizeDelta.y;
-        //float elementWidth = prefabRT.sizeDelta.x;
-        //Debug.Log($"Element sizeDelta  {elementWidth}, {elementHeight}");
-        //elementHeight = 50f;// prefabRT.rect.height;
-        //elementWidth = 380f;//prefabRT.rect.height;
-        //prefabRT.rect.Set(0, 0, elementWidth, elementHeight);
-      
-  
-        //float placerStartX = 0 + (elementWidth/2);// (parentWidth/2);//start at left? right now parent is placed using top, left and elements are placed via center 
-        //float placerStartY = 0 - elementHeight;//start at top, then move the height down
-        //float placerIntervalY = -elementHeight - 20; //go down
-        //int currentInterval = 0;//track where we are
 
         //maybe helpful? https://answers.unity.com/questions/1748577/ui-issue-when-instantiating-ui-prefabs-at-runtime.html
         //TODO: revisit these to make some of the sizes reactive to the text inside of them  https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/HOWTO-UIFitContentSize.html
