@@ -4,23 +4,26 @@ using UnityEngine;
 using System.IO; //for Path
 using System;
 using System.Text;//for encoding
+using UnityEditor;
 
+
+//want to avoid playerprefs for most things because it gets saved in the registry for windows....
 public static class DataManager
 {
     //save the settings as JSON to a file at a location TBD
     public static bool SaveJsonDataToFile(string filePath, string settingsJson)
     {
 
-        //var folderPath =
-        //if !UNITY_EDITOR
-        //     Application.persistentDataPath;
-        //#else
-        //     Application.streamingAssetsPath;
-        //#endif
+        var folderPath =
+        #if !UNITY_EDITOR
+             Application.persistentDataPath;
+        #else
+             Application.streamingAssetsPath;
+        #endif
 
         Debug.Log($"SaveJsonDataToFile--> {filePath} :\n {settingsJson}");
         string fullPath = "";
-        if (filePath.Length > 0) fullPath = Path.Combine(Application.persistentDataPath, filePath);
+        if (filePath.Length > 0) fullPath = Path.Combine(folderPath, filePath);
         else
         {
             Debug.LogWarning($"cant use empty path {filePath} for data {settingsJson}");
@@ -30,11 +33,10 @@ public static class DataManager
         try
         {
             // Create directory if not exists
-            if (!Directory.Exists(Application.persistentDataPath))
+            if (!Directory.Exists(folderPath))
             {
-                Directory.CreateDirectory(Application.persistentDataPath);
+                Directory.CreateDirectory(folderPath);
             }
-
 
             //https://stackoverflow.com/questions/54485349/system-io-dont-create-the-file-json
             // Create file or overwrite if exists
@@ -62,7 +64,13 @@ public static class DataManager
     //load the settings as JSON from a file at a location TBD
     public static string LoadJsonDataFromFile(string filePath)
     {
-        var fullPath = Path.Combine(Application.persistentDataPath, filePath);
+        var folderPath =
+        #if !UNITY_EDITOR
+            Application.persistentDataPath;
+        #else
+            Application.streamingAssetsPath;
+        #endif
+        var fullPath = Path.Combine(folderPath, filePath);
 
         Debug.Log($"LoadJsonDataFromFile: {filePath}");
         //JSON.Parse(jsonString);
@@ -97,8 +105,7 @@ public static class DataManager
     }
     public static string ConvertObjToJson(object obj)
     {
-        return JsonUtility.ToJson(obj, true);
-
+        return EditorJsonUtility.ToJson(obj, true);
     }
 
 }

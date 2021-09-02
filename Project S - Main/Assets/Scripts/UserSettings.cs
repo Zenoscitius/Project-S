@@ -9,8 +9,9 @@ using UnityEditor;
 
 //store the current settings for inputs and other values for access by other code
 
-[System.Serializable]
-public class UserSettings : MonoBehaviour //cant declare complex members in  classes apparently
+
+//[System.Serializable]
+public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //cant declare complex members in  classes apparently
 {
     //https://www.youtube.com/watch?v=xF2zUOfPyg8
     //https://blogs.unity3d.com/2020/11/26/learn-the-input-system-with-updated-tutorials-and-our-sample-project-warriors/?utm_source=youtube&utm_medium=social&utm_campaign=event_global_generalpromo_2020-11-26_unite-now-input-system-blog
@@ -48,6 +49,31 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         }
     }
 
+    //TODO: https://docs.unity3d.com/Manual/script-Serialization-Custom.html
+    public void OnBeforeSerialize()
+    {
+        Debug.Log("<color=green>OnBeforeSerialize</color>");
+        // Unity is about to read the serializedNodes field's contents.
+        // The correct data must now be written into that field "just in time".
+        //if (serializedNodes == null) serializedNodes = new List<SerializableNode>();
+        //if (root == null) root = new Node();
+        //serializedNodes.Clear();
+        //AddNodeToSerializedNodes(root);
+        // Now Unity is free to serialize this field, and we should get back the expected 
+        // data when it is deserialized later.
+    }
+    public void OnAfterDeserialize()
+    {
+        Debug.Log("<color=green>OnAfterDeserialize</color>");
+        //Unity has just written new data into the serializedNodes field.
+        //let's populate our actual runtime data with those new values.
+        //if (serializedNodes.Count > 0)
+        //{
+        //    ReadNodeFromSerializedNodes(0, out root);
+        //}
+        //else
+        //    root = new Node();
+    }
 
     //TODO: try out https://assetstore.unity.com/packages/tools/input-management/json-net-for-unity-11347#description for easier/better serialization
 
@@ -75,11 +101,6 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         //}
     }
 
-    //public bool isFullscreen = true;// Screen.fullScreen;
-    //public bool isResizable = false; //!Screen.fullScreen;
-    //public bool isVsynced = false;
-
-
     [System.Serializable]
     public struct AudioData
     {
@@ -89,11 +110,18 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         public float VoicesVolume;
     }
 
+    [System.Serializable]
+    public struct ControlsData
+    {
+
+    }
+
+
 
     public ScreenData screenData;
     public AudioData audioData;
     private Resolution currentResolution;//  Screen.currentResolution;?
-    public AudioMixer audioMixer;
+    public AudioMixer audioMixer; //TODO: do a private vs public pass
 
 
     //public PlayerPrefs unitySettings = new PlayerPrefs();
@@ -103,24 +131,8 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     public  InputActionMap controlBindings;
 
     private string settingsFileName = "settings.dat";
-    private string settingsFilePath;
+
     //SwitchCurrentActionMap();
-
-    
-    //not presently used
-    private string SettingsToJson()
-    {
-        string json = "{";
-
-        json += "'isFullscreen':'" + screenData.isFullscreen.ToString() + "',";
-        json += "'isResizable':'" + screenData.isResizable.ToString() + "',";
-        json += "'isVsynced':'" + screenData.isVsynced.ToString() + "',";
-
-        json += "}";
-
-        return json;
-    }
-
 
     //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/HowDoI.html
     //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.InputActionRebindingExtensions.RebindingOperation.html
@@ -151,6 +163,7 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
 
     //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
     //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
+    //set the 0-100 value of the volume
     public void SetVolume(string type, float newValue)
     {
         //Debug.Log($"New Audio Setting: {type} @ {newValue} ");
@@ -167,30 +180,27 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         }
         else
         {
+            if (type == "FXVolume") this.audioData.FXVolume = newValue;
+            else if (type == "VoicesVolume") this.audioData.VoicesVolume = newValue;
+            else if (type == "MusicVolume") this.audioData.MusicVolume = newValue;
+
             if (newValue > 0) //when log doesnt break and it technically still makes noise
             {
                 float convertedVolume = Mathf.Log10(newValue) * 20;
                 //this.audioData.GetType().GetProperty(type).SetValue(audioData, convertedVolume);
                 audioMixer.SetFloat(type, convertedVolume);
-                Debug.Log($"New volume: {convertedVolume} ");
-
-                //update tracking
-                if (type == "FXVolume") this.audioData.FXVolume = newValue;
-                else if (type == "VoicesVolume") this.audioData.VoicesVolume = newValue;
-                else if (type == "MusicVolume") this.audioData.MusicVolume = newValue;
-   
+                Debug.Log($"New volume: {convertedVolume} ");   
             }
             else //should mute instead (seems we cant access that option directly via script--just set to absolute min volume instead?
             {
-                this.audioData.MainVolume = 0;
                 audioMixer.SetFloat(type, -80f);
             }
         }
-
         //TODO: trigger save
         //SaveUserSettingsToFile();
     }
 
+    //return the 0-100 value of the volume
     public float GetVolume(string type)
     {
         if (type == "main")
@@ -203,8 +213,8 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         }
         else
         {
-            float rawVolume = 0;
-            audioMixer.GetFloat(type, out rawVolume);
+    
+            audioMixer.GetFloat(type, out float rawVolume);
             if (rawVolume == -80f) return 0;
             else
             {
@@ -212,13 +222,26 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
                 return convertedVolume;
             }
         }
-
     }
 
-
-    //
+    //update to pass resolution
     public void UpdateResolution(Resolution newResolution)
     {
+        //TODO: maybe make sure that this is a valid resolution before pushing it? 
+
+        bool resolutionIsValid = false;
+        foreach (Resolution validResolution in Screen.resolutions)
+        {
+            if (validResolution.width == newResolution.width && validResolution.height == newResolution.height
+                && validResolution.refreshRate == newResolution.refreshRate) resolutionIsValid = true;
+        }
+
+        if (!resolutionIsValid)
+        {
+            Debug.LogWarning($"UpdateResolution tried to set invalid resolution: {newResolution}");
+            return;
+        }
+ 
         this.screenData.height = newResolution.height;
         this.screenData.width = newResolution.width;
         this.screenData.refreshRate = newResolution.refreshRate;
@@ -229,12 +252,8 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
     //push saved screendata to live
     public void UpdateResolution()
     {
-        //currentResolution.width = this.screenData.width;
-        //currentResolution.height = this.screenData.height;
-        //currentResolution.refreshRate = this.screenData.refreshRate;
         Screen.SetResolution(this.screenData.width, this.screenData.height, this.screenData.isFullscreen, this.screenData.refreshRate);
     }
-
 
     //save the settings as JSON to a file at a location TBD
     public void SaveUserSettingsToFile()
@@ -245,7 +264,6 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         DataManager.SaveJsonDataToFile(settingsFileName, settingsJson);
     }
 
-
     //load the settings as JSON from a file at a location TBD
     public void LoadUserSettingsFromFile()
     {
@@ -255,14 +273,21 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
 
         string jsonData = DataManager.LoadJsonDataFromFile(settingsFileName);
 
-        Debug.Log($"loaded user settings Json Data: {DataManager.ConvertObjToJson(jsonData)}");
-        if (jsonData.Length > 3)
+        //Debug.Log($"loaded user settings Json Data: {DataManager.ConvertObjToJson(jsonData)}");
+        if (jsonData.Length > 3)//if we actually have data...
         {
-            JsonUtility.FromJsonOverwrite(jsonData, this);
-
+            JsonUtility.FromJsonOverwrite(jsonData, this); //EditorJsonUtility
             UpdateResolution();
         }
-        Debug.Log($"loaded settngs results: {DataManager.ConvertObjToJson(this)}");
+        else
+        {
+            Debug.Log("<color=red>NO User Settings file!  Engage defaults</color>");
+            InitializeDefaultData();
+        }
+        Debug.Log($"loaded settings results [direct]: {DataManager.ConvertObjToJson(this.screenData)}, " +
+            $" {DataManager.ConvertObjToJson(this.audioData)}");
+        Debug.Log($"loaded settings results [helper]: {DataManager.ConvertObjToJson(this)}");
+
 
     }
 
@@ -272,32 +297,34 @@ public class UserSettings : MonoBehaviour //cant declare complex members in  cla
         this.screenData.isFullscreen = Screen.fullScreen;
         this.screenData.isResizable = !Screen.fullScreen;
         this.screenData.isVsynced = false;
-        this.currentResolution = Screen.currentResolution;
+        this.screenData.refreshRate = Screen.currentResolution.refreshRate;
+        this.screenData.height = Screen.currentResolution.height;
+        this.screenData.width = Screen.currentResolution.width;
+        this.audioData.MainVolume = 50;
+        this.audioData.FXVolume = 100;
+        this.audioData.MusicVolume = 100;
+        this.audioData.VoicesVolume = 100;
+
+        //no need to do default controls since theyre defined already
+
+        //push the datas to active usage
+        UpdateResolution();
+        SetVolume("MainVolume", this.audioData.MainVolume);
+        SetVolume("FXVolume", this.audioData.FXVolume);
+        SetVolume("MusicVolume", this.audioData.MusicVolume);
+        SetVolume("VoicesVolume", this.audioData.VoicesVolume);
     }
 
     private void Awake()
     {
         Debug.Log("<color=green>User Settings instance up and running from awake woot!</color> ");
         //Debug.Log(PlayerPrefs)
-        settingsFilePath = Path.Combine(Application.persistentDataPath, settingsFileName);
-        bool settingsFileExists = File.Exists(settingsFilePath);
-
-        if (settingsFileExists)
-        {
-            //Debug.Log("User Settings file exists!");
-            LoadUserSettingsFromFile();
-        }
-        else
-        {
-            Debug.Log("<color=red>NO User Settings file!  Engage defaults</color>");
-            InitializeDefaultData();
-        }
-
+   
+        LoadUserSettingsFromFile();
     }
 
     private void Start()
     {
         //Debug.Log("User Settings instance up and running from start woot!");
-
     }
 }

@@ -77,10 +77,6 @@ public class MenuScripts : MonoBehaviour
         //var deviceLayoutName = default(string);
         //var controlPath = default(string);
 
-
-
-
-
         // Get display string from action.
         //var action = m_Action?.action;
         //if (action != null)
