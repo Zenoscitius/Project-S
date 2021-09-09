@@ -9,7 +9,6 @@ using UnityEditor;
 
 //store the current settings for inputs and other values for access by other code
 
-
 //[System.Serializable]
 public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //cant declare complex members in  classes apparently
 {
@@ -21,13 +20,13 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //[old?] https://forum.unity.com/threads/rebinding-keys-isnt-reflected-in-existing-controlschemes.829191/
     //[OLD_INPUT_SYSTEM]https://docs.unity3d.com/Manual/class-InputManager.html
 
-   
+
     // To use: access with UserSettings.Instance
     //
     // To set up:
     //  - Copy this file (duplicate it)
-    //  - rename class SingletonSimple to your own classname
-    //  - rename CS file too
+    //  - rename class to your own classname
+    //  - rename CS (C#) file too
     //
     // DO NOT PUT THIS IN ANY SCENE; this code auto-instantiates itself once
     // (the first time you try and access the instance==probably will be when the game starts) 
@@ -118,17 +117,17 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
 
 
+    //enumerate the actual data stored 
     public ScreenData screenData;
     public AudioData audioData;
     private Resolution currentResolution;//  Screen.currentResolution;?
     public AudioMixer audioMixer; //TODO: do a private vs public pass
 
-
     //public PlayerPrefs unitySettings = new PlayerPrefs();
 
     //TODO: determine if this will serialize to json nicely for rebinding 
-    public  string inputType; //controller, keyboard+m
-    public  InputActionMap controlBindings;
+    public string inputType; //controller, keyboard+m
+    public InputActionMap controlBindings;
 
     private string settingsFileName = "settings.dat";
 
@@ -152,76 +151,9 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             .OnMatchWaitForAnother(0.1f)
             .OnComplete(operation => {
                 Debug.Log($"Rebound '{actionToRebind}' to '{operation.selectedControl}'");
-                operation.Dispose();
+                operation.Dispose();//free memory otherwise it is a leak
             })
             .Start();
-    }
-
-
-    //https://hextantstudios.com/unity-custom-settings/
-    //https://support.unity.com/hc/en-us/articles/115000177803-How-can-I-modify-Project-Settings-via-scripting-
-
-    //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
-    //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
-    //set the 0-100 value of the volume
-    public void SetVolume(string type, float newValue)
-    {
-        //Debug.Log($"New Audio Setting: {type} @ {newValue} ");
-        if (type == "main" || type == "MainVolume")
-        {
-            const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
-            SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
-            SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
-
-            //update the actual value and the tracking
-            m_Volume.floatValue = this.audioData.MainVolume = newValue;
-            audioManager.ApplyModifiedProperties();
-
-        }
-        else
-        {
-            if (type == "FXVolume") this.audioData.FXVolume = newValue;
-            else if (type == "VoicesVolume") this.audioData.VoicesVolume = newValue;
-            else if (type == "MusicVolume") this.audioData.MusicVolume = newValue;
-
-            if (newValue > 0) //when log doesnt break and it technically still makes noise
-            {
-                float convertedVolume = Mathf.Log10(newValue) * 20;
-                //this.audioData.GetType().GetProperty(type).SetValue(audioData, convertedVolume);
-                audioMixer.SetFloat(type, convertedVolume);
-                Debug.Log($"New volume: {convertedVolume} ");   
-            }
-            else //should mute instead (seems we cant access that option directly via script--just set to absolute min volume instead?
-            {
-                audioMixer.SetFloat(type, -80f);
-            }
-        }
-        //TODO: trigger save
-        //SaveUserSettingsToFile();
-    }
-
-    //return the 0-100 value of the volume
-    public float GetVolume(string type)
-    {
-        if (type == "main")
-        {
-            const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
-            SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
-            SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
-
-            return m_Volume.floatValue;
-        }
-        else
-        {
-    
-            audioMixer.GetFloat(type, out float rawVolume);
-            if (rawVolume == -80f) return 0;
-            else
-            {
-                float convertedVolume = Mathf.Pow((rawVolume / 20), 10f); //reverse the conversion 
-                return convertedVolume;
-            }
-        }
     }
 
     //update to pass resolution
@@ -241,7 +173,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             Debug.LogWarning($"UpdateResolution tried to set invalid resolution: {newResolution}");
             return;
         }
- 
+
         this.screenData.height = newResolution.height;
         this.screenData.width = newResolution.width;
         this.screenData.refreshRate = newResolution.refreshRate;
@@ -276,8 +208,10 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         //Debug.Log($"loaded user settings Json Data: {DataManager.ConvertObjToJson(jsonData)}");
         if (jsonData.Length > 3)//if we actually have data...
         {
+            //this._Instance
             JsonUtility.FromJsonOverwrite(jsonData, this); //EditorJsonUtility
-            UpdateResolution();
+
+            SetAllData();
         }
         else
         {
@@ -288,7 +222,14 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             $" {DataManager.ConvertObjToJson(this.audioData)}");
         Debug.Log($"loaded settings results [helper]: {DataManager.ConvertObjToJson(this)}");
 
+    }
 
+    private void SetAllData(){
+        UpdateResolution();
+        //SetVolume("MainVolume", this.audioData.MainVolume);
+        //SetVolume("FXVolume", this.audioData.FXVolume);
+        //SetVolume("MusicVolume", this.audioData.MusicVolume);
+        //SetVolume("VoicesVolume", this.audioData.VoicesVolume);
     }
 
     //sets all default data
@@ -300,31 +241,34 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         this.screenData.refreshRate = Screen.currentResolution.refreshRate;
         this.screenData.height = Screen.currentResolution.height;
         this.screenData.width = Screen.currentResolution.width;
-        this.audioData.MainVolume = 50;
-        this.audioData.FXVolume = 100;
-        this.audioData.MusicVolume = 100;
-        this.audioData.VoicesVolume = 100;
+        this.audioData.MainVolume = 50f;
+        this.audioData.FXVolume = 100f;
+        this.audioData.MusicVolume = 100f;
+        this.audioData.VoicesVolume = 100f;
 
         //no need to do default controls since theyre defined already
 
         //push the datas to active usage
-        UpdateResolution();
-        SetVolume("MainVolume", this.audioData.MainVolume);
-        SetVolume("FXVolume", this.audioData.FXVolume);
-        SetVolume("MusicVolume", this.audioData.MusicVolume);
-        SetVolume("VoicesVolume", this.audioData.VoicesVolume);
+        SetAllData();
     }
 
     private void Awake()
     {
         Debug.Log("<color=green>User Settings instance up and running from awake woot!</color> ");
-        //Debug.Log(PlayerPrefs)
-   
+
+        //grab the audiomixer 
+        this.audioMixer = FindObjectOfType<AudioMixer>();
+        Debug.Log($"<color=yellow>Assign audio mixer?</color> {DataManager.ConvertObjToJson(audioMixer)}");
+
+        //Debug.Log(PlayerPrefs)    
         LoadUserSettingsFromFile();
     }
 
     private void Start()
     {
-        //Debug.Log("User Settings instance up and running from start woot!");
+        //start doesnt get triggered
+        Debug.Log("User Settings instance up and running from start woot!");
+
+
     }
 }

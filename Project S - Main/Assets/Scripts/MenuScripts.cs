@@ -8,7 +8,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine.Audio;
 
-public class MenuScripts : MonoBehaviour
+public class MenuScripts : AudioController
 {
     protected PlayerInput menuInputs = null;
     protected PlayerInput playerInputs = null;

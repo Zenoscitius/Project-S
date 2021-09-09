@@ -10,10 +10,12 @@ using UnityEditor;
 //want to avoid playerprefs for most things because it gets saved in the registry for windows....
 public static class DataManager
 {
+    public static float cat; 
+
     //save the settings as JSON to a file at a location TBD
     public static bool SaveJsonDataToFile(string filePath, string settingsJson)
     {
-
+        //folder path based on whether its in dev mode or not
         var folderPath =
         #if !UNITY_EDITOR
              Application.persistentDataPath;
@@ -33,10 +35,7 @@ public static class DataManager
         try
         {
             // Create directory if not exists
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
+            if (!Directory.Exists(folderPath)) { Directory.CreateDirectory(folderPath); }
 
             //https://stackoverflow.com/questions/54485349/system-io-dont-create-the-file-json
             // Create file or overwrite if exists
