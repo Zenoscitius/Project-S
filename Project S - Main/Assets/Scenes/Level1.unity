@@ -14100,7 +14100,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.00003238008}
+  m_AnchoredPosition: {x: 0, y: -0.00007166015}
   m_SizeDelta: {x: 938, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1518480224
@@ -14516,11 +14516,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e0a5e1dddc955b44991297588352a07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolutionsDropdown: {fileID: 1896594585}
   controlBinderPrefab: {fileID: 2493273194330421449, guid: 07bfc29d1bfbeb346955fc458dd16abe, type: 3}
+  resolutionsDropdown: {fileID: 1896594585}
   playerCharacter: {fileID: 271170580}
   currentMenuPosition: 1
-  audioMixer: {fileID: 24100000, guid: 22fbba1d5898f3c43a8de843b8de4fce, type: 2}
 --- !u!114 &1748605020
 MonoBehaviour:
   m_ObjectHideFlags: 0
