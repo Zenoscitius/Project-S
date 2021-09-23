@@ -122,12 +122,13 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     public AudioData audioData;
     private Resolution currentResolution;//  Screen.currentResolution;?
     public AudioMixer audioMixer; //TODO: do a private vs public pass
-
+    public InputActionAsset inputActions;
     //public PlayerPrefs unitySettings = new PlayerPrefs();
 
     //TODO: determine if this will serialize to json nicely for rebinding 
-    public string inputType; //controller, keyboard+m
-    public InputActionMap controlBindings;
+    //public string inputType; //controller, keyboard+m
+    //public InputActionMap controlBindings;
+
 
     private string settingsFileName = "settings.dat";
 
@@ -179,12 +180,14 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         this.screenData.refreshRate = newResolution.refreshRate;
         Screen.SetResolution(newResolution.width, newResolution.height, this.screenData.isFullscreen, newResolution.refreshRate);
         //this.currentResolution = newResolution;
+        //if (triggerSave) SaveUserSettingsToFile();
     }
 
     //push saved screendata to live
     public void UpdateResolution()
     {
         Screen.SetResolution(this.screenData.width, this.screenData.height, this.screenData.isFullscreen, this.screenData.refreshRate);
+        //if (triggerSave) SaveUserSettingsToFile();
     }
 
 
@@ -195,7 +198,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
     //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
     //set the 0-100 value of the volume
-    public void SetVolume(string type, float newValue)
+    public void SetVolume(string type, float newValue, bool triggerSave = false)
     {
         //Debug.Log($"New Audio Setting: {type} @ {newValue} ");
         if (type == "main" || type == "MainVolume")
@@ -228,7 +231,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             }
         }
         //TODO: trigger save
-        //SaveUserSettingsToFile();
+        if(triggerSave) SaveUserSettingsToFile();
     }
 
     //return the 0-100 value of the volume
@@ -256,7 +259,6 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
 
 
-
     //save the settings as JSON to a file at a location TBD
     public void SaveUserSettingsToFile()
     {
@@ -278,10 +280,10 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         //Debug.Log($"loaded user settings Json Data: {DataManager.ConvertObjToJson(jsonData)}");
         if (jsonData.Length > 3)//if we actually have data...
         {
-            //this._Instance
+            Debug.Log("<color=green>User Settings file detected! </color>");
             JsonUtility.FromJsonOverwrite(jsonData, this); //EditorJsonUtility
 
-            SetAllData();
+            SetAllDataToActive();
         }
         else
         {
@@ -294,7 +296,8 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
     }
 
-    private void SetAllData(){
+    //pushes all the internal data to the actionable gamestate data
+    private void SetAllDataToActive(){
         UpdateResolution();
         SetVolume("MainVolume", this.audioData.MainVolume);
         SetVolume("FXVolume", this.audioData.FXVolume);
@@ -305,6 +308,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //sets all default data
     private void InitializeDefaultData()
     {
+        //todo: store initial states for this? 
         this.screenData.isFullscreen = Screen.fullScreen;
         this.screenData.isResizable = !Screen.fullScreen;
         this.screenData.isVsynced = false;
@@ -319,7 +323,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         //no need to do default controls since theyre defined already
 
         //push the datas to active usage
-        SetAllData();
+        SetAllDataToActive();
     }
 
     private void Awake()
@@ -327,8 +331,16 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         Debug.Log("<color=green>User Settings instance up and running from awake woot!</color> ");
 
         //grab the audiomixer 
-        this.audioMixer = Resources.Load("MasterMixer") as AudioMixer;
+        this.audioMixer = Resources.Load("ResonanceAudioMixer") as AudioMixer;
         Debug.Log($"<color=yellow>Assigned audio mixer?</color> {DataManager.ConvertObjToJson(audioMixer)}");
+
+
+        //grab the controls 
+        //this.controlBindings =
+        this.inputActions = Resources.Load<InputActionAsset>("Inputs/PlayerActions");// as InputActionMap;
+        Debug.Log($"<color=yellow>Assigned control bindings?</color> {DataManager.ConvertObjToJson(inputActions)}");
+
+
 
         //Debug.Log(PlayerPrefs)    
         LoadUserSettingsFromFile();

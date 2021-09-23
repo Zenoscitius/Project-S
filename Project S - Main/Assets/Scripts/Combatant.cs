@@ -8,7 +8,6 @@ public class Combatant : MonoBehaviour
     public float speed = 3.0f;
 
     public int maxHealth = 5;
-
     public int health { get { return currentHealth; } }
     protected int currentHealth;
 
@@ -31,9 +30,9 @@ public class Combatant : MonoBehaviour
     {
         //Debug.Log("Comb Start fxn");
         animator = GetComponent<Animator>();
-        currentHealth = maxHealth;
         rigidbody2d = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
+        currentHealth = maxHealth;
     }
 
     //https://learn.unity.com/tutorial/coroutines?uv=2019.3&projectId=5c88f2c1edbc2a001f873ea5
@@ -42,7 +41,13 @@ public class Combatant : MonoBehaviour
     // Update is called once per frame
     protected virtual void Update()
     {
-        
+
+        if (isInvincible)
+        {
+            invincibleTimer -= Time.deltaTime;
+            if (invincibleTimer < 0)
+                isInvincible = false;
+        }
     }
 
     //updates not based on current framerate

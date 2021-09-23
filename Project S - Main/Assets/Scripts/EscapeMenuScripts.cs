@@ -226,23 +226,26 @@ public class EscapeMenuScripts : MenuScripts
         }
     }
 
+    //note this will not work in the editor
     public void Exitgame()
     {
         //TODO: show confirm prompt; maybe should be callable without being paused?
         if (gamePaused)
         {
-            Application.Quit();
+            #if !UNITY_EDITOR
+                  Application.Quit();
+            #else
+                  EditorApplication.ExitPlaymode();
+            #endif
         }
     }
 
 
     //https://www.red-gate.com/simple-talk/dotnet/c-programming/how-to-create-a-settings-menu-in-unity/
-    
-
     public void OnButtonHoverIn(BaseEventData eventData)
     {
         //Debug.Log("Hover In");
-        GameObject selectedButton = eventData.selectedObject;
+        //GameObject selectedButton = eventData.selectedObject;
         //Debug.Log(selectedButton);
         //Image buttonBackground = selectedButton.GetComponent<Image>();
         //Debug.Log(buttonBackground.color);
@@ -252,7 +255,7 @@ public class EscapeMenuScripts : MenuScripts
     public void OnButtonHoverOut(BaseEventData eventData)
     {
         //Debug.Log("Hover Out");
-        GameObject selectedButton = eventData.selectedObject;
+        //GameObject selectedButton = eventData.selectedObject;
         //Debug.Log(selectedButton);
         //Image buttonBackground = selectedButton.GetComponent<Image>();
         //Debug.Log(buttonBackground.color);
@@ -294,9 +297,6 @@ public class EscapeMenuScripts : MenuScripts
         Debug.Log("Resolution Selected at Index: " + resArrayIndex);
         curSelectedResIndex = resArrayIndex;
         Resolution targetRes = resolutions[resArrayIndex];
-        //Screen.SetResolution(targetRes.width, targetRes.height, Screen.fullScreen, targetRes.refreshRate);
-
-        //UserSettings.Instance.isFullscreen
         //TODO: save the user setting change to the settings file 
         //TODO: have a popup that autoreverts if not confirmed 
 

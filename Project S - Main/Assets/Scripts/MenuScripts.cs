@@ -13,17 +13,8 @@ public class MenuScripts : AudioController
     protected PlayerInput menuInputs = null;
     protected PlayerInput playerInputs = null;
     public GameObject controlBinderPrefab;
-    // Start is called before the first frame update
-    //void Start()
-    //{
+    public Canvas popupOverlay;
 
-    //}
-
-    //// Update is called once per frame
-    //void Update()
-    //{
-
-    //}
     protected void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel)
     {
         //create a controlbinder as a child of the scroller
@@ -93,5 +84,50 @@ public class MenuScripts : AudioController
         //// Give listeners a chance to configure UI in response.
         //m_UpdateBindingUIEvent?.Invoke(this, displayString, deviceLayoutName, controlPath);
     }
+
+
+    //popup to confirm/reject actions 
+    public void ActionChoicePopup(string actionText, string confirmFunction, string cancelFunction, float timer = 0f)
+    {
+        //parse inputs
+        if (actionText.Trim() == "") actionText = "Are you sure?";
+        //if (confirmFunction)
+       //( (confirmFunction) != null) confirmFunction = '';
+
+        //get subobjects
+        GameObject actionTextObj = this.popupOverlay.transform.Find("ActionText").gameObject;
+        GameObject confirmButtonObj = this.popupOverlay.transform.Find("ActionText").gameObject;
+        GameObject cancelButtonObj = this.popupOverlay.transform.Find("ActionText").gameObject;
+
+        //assign subobjects
+        actionTextObj.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(actionText);
+        confirmButtonObj.GetComponent<Button>().onClick.AddListener(() => Invoke(confirmFunction, 0f) ); //delegate { OnRebindClick(action.name); } [both of these work]
+        cancelButtonObj.GetComponent<Button>().onClick.AddListener(() => Invoke(cancelFunction, 0f)); //delegate { OnRebindClick(action.name); } [both of these work]
+
+        //cancel after a timer
+        if(timer != 0f)
+        {
+            Invoke(cancelFunction, timer);
+        }
+        //add the appropriate listener to the button 
+        //buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
+        //
+        //Invoke(rejectFunction, 0f);
+    }
+
+
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        //have disabled initially
+        this.popupOverlay.enabled = (false);
+
+    }
+    //// Update is called once per frame
+    //void Update()
+    //{
+
+    //}
 
 }
