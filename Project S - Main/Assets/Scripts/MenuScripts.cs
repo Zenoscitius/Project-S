@@ -15,7 +15,11 @@ public class MenuScripts : AudioController
     public GameObject controlBinderPrefab;
     public Canvas popupOverlay;
 
-    protected void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel)
+    //https://answers.unity.com/questions/1277650/how-can-i-pass-a-method-like-a-parameter-unity3d-c.html
+    public delegate void ConfirmDelegateFxn(); // This defines what type of method you're going to call.
+    public ConfirmDelegateFxn m_methodToCall; // This is the variable holding the method you're going to cal
+
+    protected void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel, )
     {
         //create a controlbinder as a child of the scroller
         GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
@@ -87,12 +91,24 @@ public class MenuScripts : AudioController
 
 
     //popup to confirm/reject actions 
-    public void ActionChoicePopup(string actionText, string confirmFunction, string cancelFunction, float timer = 0f)
+    //System.Func<double> function
+    //System.Action function
+    public void ActionChoicePopup(string actionText, System.Action confirmFunction, System.Action cancelFunction, float timer = 0f)
     {
+
         //parse inputs
         if (actionText.Trim() == "") actionText = "Are you sure?";
         //if (confirmFunction)
-       //( (confirmFunction) != null) confirmFunction = '';
+        //( (confirmFunction) != null) confirmFunction = '';
+
+        //cancel after a timer
+        //TODO: see if this matters https://docs.unity3d.com/Manual/BestPracticeUnderstandingPerformanceInUnity3.html
+        IEnumerator cancelCoroutine = ActionChoiceWait(cancelFunction, timer);
+        if (timer != 0f)
+        {
+            StartCoroutine(cancelCoroutine); //start up that timer
+            //Invoke(cancelFunction, timer); //old version where pass string 
+        }
 
         //get subobjects
         GameObject actionTextObj = this.popupOverlay.transform.Find("ActionText").gameObject;
@@ -101,20 +117,24 @@ public class MenuScripts : AudioController
 
         //assign subobjects
         actionTextObj.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(actionText);
-        confirmButtonObj.GetComponent<Button>().onClick.AddListener(() => Invoke(confirmFunction, 0f) ); //delegate { OnRebindClick(action.name); } [both of these work]
-        cancelButtonObj.GetComponent<Button>().onClick.AddListener(() => Invoke(cancelFunction, 0f)); //delegate { OnRebindClick(action.name); } [both of these work]
+        confirmButtonObj.GetComponent<Button>().onClick.AddListener(() => {
+            confirmFunction();
+            StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
 
-        //cancel after a timer
-        if(timer != 0f)
-        {
-            Invoke(cancelFunction, timer);
-        }
-        //add the appropriate listener to the button 
+        } ); 
+        cancelButtonObj.GetComponent<Button>().onClick.AddListener(() => { 
+            cancelFunction();
+            StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
+    
+        }); 
+
         //buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
-        //
-        //Invoke(rejectFunction, 0f);
     }
-
+    private IEnumerator ActionChoiceWait(System.Action cancelFunction, float timer)
+    {
+        if(timer > 0f) yield return new WaitForSeconds(timer); //non-blocking wait 
+        cancelFunction();
+    }
 
 
     // Start is called before the first frame update
