@@ -14,12 +14,13 @@ public class MenuScripts : AudioController
     protected PlayerInput playerInputs = null;
     public GameObject controlBinderPrefab;
     public Canvas popupOverlay;
+    //public GameObject popupOverlay;
 
     //https://answers.unity.com/questions/1277650/how-can-i-pass-a-method-like-a-parameter-unity3d-c.html
     public delegate void ConfirmDelegateFxn(); // This defines what type of method you're going to call.
     public ConfirmDelegateFxn m_methodToCall; // This is the variable holding the method you're going to cal
 
-    protected void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel, )
+    protected void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel )
     {
         //create a controlbinder as a child of the scroller
         GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
@@ -89,21 +90,23 @@ public class MenuScripts : AudioController
         //m_UpdateBindingUIEvent?.Invoke(this, displayString, deviceLayoutName, controlPath);
     }
 
-
+    //TODO: turn into a class of its own
+    //https://gamedevbeginner.com/coroutines-in-unity-when-and-how-to-use-them/
+    //https://gamedevbeginner.com/how-to-make-countdown-timer-in-unity-minutes-seconds/
     //popup to confirm/reject actions 
     //System.Func<double> function
     //System.Action function
     public void ActionChoicePopup(string actionText, System.Action confirmFunction, System.Action cancelFunction, float timer = 0f)
     {
-
         //parse inputs
         if (actionText.Trim() == "") actionText = "Are you sure?";
-        //if (confirmFunction)
-        //( (confirmFunction) != null) confirmFunction = '';
+        //if (confirmFunction)       //( (confirmFunction) != null) confirmFunction = '';
 
         //cancel after a timer
         //TODO: see if this matters https://docs.unity3d.com/Manual/BestPracticeUnderstandingPerformanceInUnity3.html
-        IEnumerator cancelCoroutine = ActionChoiceWait(cancelFunction, timer);
+        GameObject timerTextObj = null;
+        if (timer != 0f) timerTextObj = this.popupOverlay.transform.Find("TimerText").gameObject;
+        IEnumerator cancelCoroutine = ActionChoiceWait(cancelFunction, timer, timerTextObj);
         if (timer != 0f)
         {
             StartCoroutine(cancelCoroutine); //start up that timer
@@ -112,36 +115,76 @@ public class MenuScripts : AudioController
 
         //get subobjects
         GameObject actionTextObj = this.popupOverlay.transform.Find("ActionText").gameObject;
-        GameObject confirmButtonObj = this.popupOverlay.transform.Find("ActionText").gameObject;
-        GameObject cancelButtonObj = this.popupOverlay.transform.Find("ActionText").gameObject;
+        GameObject confirmButtonObj = this.popupOverlay.transform.Find("ConfirmButton").gameObject;
+        GameObject cancelButtonObj = this.popupOverlay.transform.Find("CancelButton").gameObject;
 
         //assign subobjects
-        actionTextObj.transform.Find("Bind").gameObject.GetComponent<TMP_Text>().SetText(actionText);
-        confirmButtonObj.GetComponent<Button>().onClick.AddListener(() => {
+        actionTextObj.gameObject.GetComponent<TMP_Text>().SetText(actionText);
+        confirmButtonObj.GetComponent<Button>().onClick.AddListener( () => {
             confirmFunction();
             StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
-
-        } ); 
-        cancelButtonObj.GetComponent<Button>().onClick.AddListener(() => { 
+        }); 
+        cancelButtonObj.GetComponent<Button>().onClick.AddListener( () => { 
             cancelFunction();
             StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
-    
         }); 
 
         //buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
     }
-    private IEnumerator ActionChoiceWait(System.Action cancelFunction, float timer)
+    public void CloseActionChoicePopup()
     {
-        if(timer > 0f) yield return new WaitForSeconds(timer); //non-blocking wait 
+
+    }
+    private IEnumerator ActionChoiceWait(System.Action cancelFunction, float timer, GameObject timerTextObj = null)
+    {
+        //unscaled time so being paused doesnt matter
+
+        //custom timer that lets you do other actions inside the wait
+        float counter = 0f;
+        bool counterStarted = false;
+        //TODO: consider using waitUntil/waitWhile
+        while (counter < timer)
+        {
+            if (counterStarted) counter += Time.fixedDeltaTime; //dont want to count the delta before timer started
+            else counterStarted = true; //turn timer on
+
+            Debug.Log("Current WaitTime: " + counter);
+
+            //update any visual timers
+            if(timerTextObj != null)
+            {
+                string timerText = string.Format("{0}", Mathf.CeilToInt(timer - counter) );
+                timerTextObj.GetComponent<TMP_Text>().SetText(timerText);
+            }
+
+            yield return null; //Don't freeze Unity
+        }
+
+        //builtin unity timer
+        //if (timer > 0f) yield return new WaitForSecondsRealtime(timer); //non-thread-blocking wait before runnign cancel 
         cancelFunction();
     }
+    
 
+    //note this will not work in the editor
+    public void Exitgame()
+    {
+        //TODO: show confirm prompt; maybe should be callable without being paused?
+        //if (gamePaused)
+        //{
+        #if !UNITY_EDITOR
+              Application.Quit();
+        #else
+              EditorApplication.ExitPlaymode();
+        #endif
+        //}
+    }
 
     // Start is called before the first frame update
     void Start()
     {
         //have disabled initially
-        this.popupOverlay.enabled = (false);
+        //this.popupOverlay.enabled = (false);
 
     }
     //// Update is called once per frame

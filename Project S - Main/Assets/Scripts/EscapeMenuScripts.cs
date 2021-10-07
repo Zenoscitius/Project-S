@@ -226,19 +226,7 @@ public class EscapeMenuScripts : MenuScripts
         }
     }
 
-    //note this will not work in the editor
-    public void Exitgame()
-    {
-        //TODO: show confirm prompt; maybe should be callable without being paused?
-        if (gamePaused)
-        {
-            #if !UNITY_EDITOR
-                  Application.Quit();
-            #else
-                  EditorApplication.ExitPlaymode();
-            #endif
-        }
-    }
+
 
 
     //https://www.red-gate.com/simple-talk/dotnet/c-programming/how-to-create-a-settings-menu-in-unity/
