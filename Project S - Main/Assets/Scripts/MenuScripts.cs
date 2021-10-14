@@ -59,7 +59,6 @@ public class MenuScripts : AudioController
         else UserSettings.Instance.RebindAction(targetAction);
 
         UpdateBindingDisplay();
-
     }
 
 
@@ -98,6 +97,7 @@ public class MenuScripts : AudioController
     //System.Action function
     public void ActionChoicePopup(string actionText, System.Action confirmFunction, System.Action cancelFunction, float timer = 0f)
     {
+        this.popupOverlay.enabled = (true);
         //parse inputs
         if (actionText.Trim() == "") actionText = "Are you sure?";
         //if (confirmFunction)       //( (confirmFunction) != null) confirmFunction = '';
@@ -123,18 +123,24 @@ public class MenuScripts : AudioController
         confirmButtonObj.GetComponent<Button>().onClick.AddListener( () => {
             confirmFunction();
             StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
+            this.popupOverlay.enabled = (false);
         }); 
         cancelButtonObj.GetComponent<Button>().onClick.AddListener( () => { 
             cancelFunction();
             StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
+            this.popupOverlay.enabled = (false);
         }); 
 
         //buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
     }
-    public void CloseActionChoicePopup()
-    {
 
-    }
+    //todo: have something to stop coroutine?
+    //public void CloseActionChoicePopup(System.Action cancelFunction, IEnumerator coroutine)
+    //{
+    //    cancelFunction();
+    //    StopCoroutine(coroutine); //make sure selecting a choice removes the timer choice
+    //    this.popupOverlay.enabled = (false);
+    //}
     private IEnumerator ActionChoiceWait(System.Action cancelFunction, float timer, GameObject timerTextObj = null)
     {
         //unscaled time so being paused doesnt matter
@@ -163,6 +169,7 @@ public class MenuScripts : AudioController
         //builtin unity timer
         //if (timer > 0f) yield return new WaitForSecondsRealtime(timer); //non-thread-blocking wait before runnign cancel 
         cancelFunction();
+        this.popupOverlay.enabled = (false);
     }
     
 
@@ -184,7 +191,7 @@ public class MenuScripts : AudioController
     void Start()
     {
         //have disabled initially
-        //this.popupOverlay.enabled = (false);
+        this.popupOverlay.enabled = (false);
 
     }
     //// Update is called once per frame

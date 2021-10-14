@@ -274,13 +274,14 @@ public class EscapeMenuScripts : MenuScripts
         curSelectedResIndex = validDisplayOptions.Count - (curSelectedResIndex + 1); //correct the index
 
         //fix the resolution list display 
+
         this.resolutionsDropdown.ClearOptions();
         this.resolutionsDropdown.AddOptions(validDisplayOptions);
         this.resolutionsDropdown.value = curSelectedResIndex;
         this.resolutionsDropdown.RefreshShownValue(); //just in case?
     }
 
-    public void SetResolution(int resArrayIndex)
+    public void SetResolution(int resArrayIndex, bool shouldSave = true)
     {
         Debug.Log("Resolution Selected at Index: " + resArrayIndex);
         curSelectedResIndex = resArrayIndex;
@@ -289,16 +290,38 @@ public class EscapeMenuScripts : MenuScripts
         //TODO: have a popup that autoreverts if not confirmed 
 
         //update the actual settings
-        UserSettings.Instance.UpdateResolution(targetRes);
-        //UserSettings.Instance.currentResolution = Screen.currentResolution;
-        UserSettings.Instance.SaveUserSettingsToFile();
+        if (shouldSave)
+        {
+            UserSettings.Instance.UpdateResolution(targetRes);
+            //UserSettings.Instance.currentResolution = Screen.currentResolution;
+            UserSettings.Instance.SaveUserSettingsToFile();
+        }
+
     }
 
     public void OnResolutionSelect(int eventData)
     {
         Debug.Log("Resolution Selected: " + eventData);
+        int currentIndex = this.resolutionsDropdown.value;
         int resArrayIndex = resolutions.Length - (eventData + 1); //correct the visual array index vs actual index
-        SetResolution(resArrayIndex);
+
+        //set the new resolution for now, but dont save
+        SetResolution(resArrayIndex, false);
+
+        //set the resolution and save
+        System.Action confirmFunction = (() => {
+            Debug.Log("confirm pressed");
+            SetResolution(resArrayIndex);
+        });
+
+        //revert the resolution [shouldnt need to save]
+        System.Action cancelFunction = ( () => {
+            Debug.Log("cancel pressed");
+            SetResolution(currentIndex, false);
+        });
+
+
+        ActionChoicePopup("Confirm new Resolution", confirmFunction, cancelFunction, 15f );
 
         //Image buttonBackground = selectedButton.GetComponent<Image>();
         //Debug.Log(buttonBackground.color);
