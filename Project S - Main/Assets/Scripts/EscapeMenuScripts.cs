@@ -320,7 +320,6 @@ public class EscapeMenuScripts : MenuScripts
             SetResolution(currentIndex, false);
         });
 
-
         ActionChoicePopup("Confirm new Resolution", confirmFunction, cancelFunction, 15f );
 
         //Image buttonBackground = selectedButton.GetComponent<Image>();
@@ -372,8 +371,10 @@ public class EscapeMenuScripts : MenuScripts
 
 
     // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
+        base.Start();//call MenuScripts.Start();
+
         Debug.Log("<color=purple>Escape Menu Scripts</color>");
 
         Debug.Log($"temp init spot for userSettings {UserSettings.Instance}");

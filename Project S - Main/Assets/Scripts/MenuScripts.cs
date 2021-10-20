@@ -13,7 +13,7 @@ public class MenuScripts : AudioController
     protected PlayerInput menuInputs = null;
     protected PlayerInput playerInputs = null;
     public GameObject controlBinderPrefab;
-    public Canvas popupOverlay;
+    public GameObject popupOverlay; //should be a UI object like a Canvas 
     //public GameObject popupOverlay;
 
     //https://answers.unity.com/questions/1277650/how-can-i-pass-a-method-like-a-parameter-unity3d-c.html
@@ -97,7 +97,7 @@ public class MenuScripts : AudioController
     //System.Action function
     public void ActionChoicePopup(string actionText, System.Action confirmFunction, System.Action cancelFunction, float timer = 0f)
     {
-        this.popupOverlay.enabled = (true);
+        this.popupOverlay.SetActive(true);
         //parse inputs
         if (actionText.Trim() == "") actionText = "Are you sure?";
         //if (confirmFunction)       //( (confirmFunction) != null) confirmFunction = '';
@@ -105,7 +105,13 @@ public class MenuScripts : AudioController
         //cancel after a timer
         //TODO: see if this matters https://docs.unity3d.com/Manual/BestPracticeUnderstandingPerformanceInUnity3.html
         GameObject timerTextObj = null;
-        if (timer != 0f) timerTextObj = this.popupOverlay.transform.Find("TimerText").gameObject;
+        if (timer != 0f)
+        {
+            this.popupOverlay.transform.Find("TimerText").gameObject.SetActive(true);
+            timerTextObj = this.popupOverlay.transform.Find("TimerText").gameObject;
+        }
+        else this.popupOverlay.transform.Find("TimerText").gameObject.SetActive(false);
+
         IEnumerator cancelCoroutine = ActionChoiceWait(cancelFunction, timer, timerTextObj);
         if (timer != 0f)
         {
@@ -123,12 +129,12 @@ public class MenuScripts : AudioController
         confirmButtonObj.GetComponent<Button>().onClick.AddListener( () => {
             confirmFunction();
             StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
-            this.popupOverlay.enabled = (false);
+            this.popupOverlay.SetActive(false);
         }); 
         cancelButtonObj.GetComponent<Button>().onClick.AddListener( () => { 
             cancelFunction();
             StopCoroutine(cancelCoroutine); //make sure selecting a choice removes the timer choice
-            this.popupOverlay.enabled = (false);
+            this.popupOverlay.SetActive(false);
         }); 
 
         //buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
@@ -139,7 +145,7 @@ public class MenuScripts : AudioController
     //{
     //    cancelFunction();
     //    StopCoroutine(coroutine); //make sure selecting a choice removes the timer choice
-    //    this.popupOverlay.enabled = (false);
+    //    this.popupOverlay.SetActive(false);
     //}
     private IEnumerator ActionChoiceWait(System.Action cancelFunction, float timer, GameObject timerTextObj = null)
     {
@@ -169,7 +175,7 @@ public class MenuScripts : AudioController
         //builtin unity timer
         //if (timer > 0f) yield return new WaitForSecondsRealtime(timer); //non-thread-blocking wait before runnign cancel 
         cancelFunction();
-        this.popupOverlay.enabled = (false);
+        this.popupOverlay.SetActive(false);
     }
     
 
@@ -179,19 +185,36 @@ public class MenuScripts : AudioController
         //TODO: show confirm prompt; maybe should be callable without being paused?
         //if (gamePaused)
         //{
-        #if !UNITY_EDITOR
+
+        ////set the resolution and save
+        //System.Action confirmFunction = (() => {
+        //    Debug.Log("confirm pressed");
+        //    SetResolution(resArrayIndex);
+        //});
+
+        ////revert the resolution [shouldnt need to save]
+        //System.Action cancelFunction = (() => {
+        //    Debug.Log("cancel pressed");
+        //    SetResolution(currentIndex, false);
+        //});
+
+        //ActionChoicePopup("Confirm new Resolution", confirmFunction, cancelFunction, 15f);
+
+
+#if !UNITY_EDITOR
               Application.Quit();
-        #else
-              EditorApplication.ExitPlaymode();
+#else
+        EditorApplication.ExitPlaymode();
         #endif
         //}
     }
 
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
+        Debug.Log("<color=purple>Menu Scripts</color>");
         //have disabled initially
-        this.popupOverlay.enabled = (false);
+        this.popupOverlay.SetActive(false);
 
     }
     //// Update is called once per frame

@@ -31,13 +31,15 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     // DO NOT PUT THIS IN ANY SCENE; this code auto-instantiates itself once
     // (the first time you try and access the instance==probably will be when the game starts) 
     //https://pastebin.com/SuvBWCpJ
+    public static int count = 0;
     private static UserSettings _Instance;
     public static UserSettings Instance
     {
         get
         {
-            if (!_Instance)
+            if (!_Instance && count == 0)
             {
+                Debug.Log("<color=green>Setting Up UserSettings _Instance</color>");
                 _Instance = new GameObject().AddComponent<UserSettings>();
                 // name it for easy recognition
                 _Instance.name = _Instance.GetType().ToString();
@@ -271,7 +273,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //load the settings as JSON from a file at a location TBD
     public void LoadUserSettingsFromFile()
     {
-        //Debug.Log("LoadUserSettingsFromFile");
+        Debug.Log(">LoadUserSettingsFromFile()");
         //JSON.Parse(jsonString);
         //JsonUtility.FromJson(this);
 
@@ -283,7 +285,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             Debug.Log("<color=green>User Settings file detected! </color>");
             JsonUtility.FromJsonOverwrite(jsonData, this); //EditorJsonUtility
 
-            SetAllDataToActive();
+            PushAllDataToActive();
         }
         else
         {
@@ -297,7 +299,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     }
 
     //pushes all the internal data to the actionable gamestate data
-    private void SetAllDataToActive(){
+    private void PushAllDataToActive(){
         UpdateResolution();
         SetVolume("MainVolume", this.audioData.MainVolume);
         SetVolume("FXVolume", this.audioData.FXVolume);
@@ -323,23 +325,24 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         //no need to do default controls since theyre defined already
 
         //push the datas to active usage
-        SetAllDataToActive();
+        PushAllDataToActive();
     }
 
     private void Awake()
     {
+        count++;
         Debug.Log("<color=green>User Settings instance up and running from awake woot!</color> ");
 
         //grab the audiomixer 
-        this.audioMixer = Resources.Load("ResonanceAudioMixer") as AudioMixer;
-        Debug.Log($"<color=yellow>Assigned audio mixer?</color> {DataManager.ConvertObjToJson(audioMixer)}");
-
+        //this.audioMixer = Resources.Load("ResonanceAudioMixer") as AudioMixer;
+        this.audioMixer = Resources.Load<AudioMixer>("ResonanceAudioMixer") as AudioMixer;
+        if (this.audioMixer != null) Debug.Log($"<color=yellow>Assigned audio mixer?</color> {DataManager.ConvertObjToJson(audioMixer.name)}");
+        else Debug.Log($"<color=red>Audio mixer not loaded....</color>");
 
         //grab the controls 
         //this.controlBindings =
-        this.inputActions = Resources.Load<InputActionAsset>("Inputs/PlayerActions");// as InputActionMap;
+        this.inputActions = Resources.Load<InputActionAsset>("PlayerActions");// as InputActionMap;
         Debug.Log($"<color=yellow>Assigned control bindings?</color> {DataManager.ConvertObjToJson(inputActions)}");
-
 
 
         //Debug.Log(PlayerPrefs)    

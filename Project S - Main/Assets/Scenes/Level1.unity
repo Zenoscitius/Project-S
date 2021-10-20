@@ -1898,7 +1898,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -15169,7 +15169,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlBinderPrefab: {fileID: 2493273194330421449, guid: 07bfc29d1bfbeb346955fc458dd16abe, type: 3}
-  popupOverlay: {fileID: 631286867}
+  popupOverlay: {fileID: 631286866}
   resolutionsDropdown: {fileID: 1896594585}
   playerCharacter: {fileID: 271170580}
   currentMenuPosition: 1
