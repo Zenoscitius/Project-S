@@ -17,8 +17,8 @@ public class MenuScripts : AudioController
     //public GameObject popupOverlay;
 
     //https://answers.unity.com/questions/1277650/how-can-i-pass-a-method-like-a-parameter-unity3d-c.html
-    public delegate void ConfirmDelegateFxn(); // This defines what type of method you're going to call.
-    public ConfirmDelegateFxn m_methodToCall; // This is the variable holding the method you're going to cal
+    //public delegate void ConfirmDelegateFxn(); // This defines what type of method you're going to call.
+    //public ConfirmDelegateFxn m_methodToCall; // This is the variable holding the method you're going to cal
 
     protected void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel )
     {
@@ -182,30 +182,37 @@ public class MenuScripts : AudioController
     //note this will not work in the editor
     public void Exitgame()
     {
+        #if !UNITY_EDITOR
+                        Application.Quit();
+        #else
+                EditorApplication.ExitPlaymode();
+        #endif
         //TODO: show confirm prompt; maybe should be callable without being paused?
         //if (gamePaused)
         //{
 
-        ////set the resolution and save
-        //System.Action confirmFunction = (() => {
-        //    Debug.Log("confirm pressed");
-        //    SetResolution(resArrayIndex);
-        //});
+        //set the resolution and save
+        System.Action confirmFunction = (() =>
+        {
+            Debug.Log("confirm pressed");
+            //SetResolution(resArrayIndex);
+            #if !UNITY_EDITOR
+                                  Application.Quit();
+            #else
+                        EditorApplication.ExitPlaymode();
+            #endif
+        });
 
-        ////revert the resolution [shouldnt need to save]
-        //System.Action cancelFunction = (() => {
-        //    Debug.Log("cancel pressed");
-        //    SetResolution(currentIndex, false);
-        //});
+        //revert the resolution [shouldnt need to save]
+        System.Action cancelFunction = (() =>
+        {
+            Debug.Log("cancel pressed");
+            //SetResolution(currentIndex, false);
+        });
 
-        //ActionChoicePopup("Confirm new Resolution", confirmFunction, cancelFunction, 15f);
+        ActionChoicePopup("Are you sure you want to exit the game?", confirmFunction, cancelFunction);
 
-
-#if !UNITY_EDITOR
-              Application.Quit();
-#else
-        EditorApplication.ExitPlaymode();
-        #endif
+        //TODO: autosave the game?  what should be the exit behavior in regards to current playstate (if any) 
         //}
     }
 

@@ -107,4 +107,12 @@ public static class DataManager
         return EditorJsonUtility.ToJson(obj, true);
     }
 
+    public static void CleanupMemory()
+    {
+        https://docs.unity3d.com/ScriptReference/Resources.UnloadUnusedAssets.html
+        Resources.UnloadUnusedAssets();
+
+        return;
+    }
+
 }

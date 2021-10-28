@@ -124,7 +124,8 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     public AudioData audioData;
     private Resolution currentResolution;//  Screen.currentResolution;?
     public AudioMixer audioMixer; //TODO: do a private vs public pass
-    public InputActionAsset inputActions;
+    public InputActionAsset playerInputActions;
+    public InputActionAsset menuInputActions;
     //public PlayerPrefs unitySettings = new PlayerPrefs();
 
     //TODO: determine if this will serialize to json nicely for rebinding 
@@ -210,7 +211,8 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
 
             //update the actual value and the tracking
-            m_Volume.floatValue = UserSettings.Instance.audioData.MainVolume = newValue;
+            UserSettings.Instance.audioData.MainVolume = newValue;
+            m_Volume.floatValue = newValue;
             audioManager.ApplyModifiedProperties();
 
         }
@@ -330,20 +332,24 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
     private void Awake()
     {
+        if (count != 0) return;
         count++;
+
         Debug.Log("<color=green>User Settings instance up and running from awake woot!</color> ");
 
         //grab the audiomixer 
         //this.audioMixer = Resources.Load("ResonanceAudioMixer") as AudioMixer;
         this.audioMixer = Resources.Load<AudioMixer>("ResonanceAudioMixer") as AudioMixer;
-        if (this.audioMixer != null) Debug.Log($"<color=yellow>Assigned audio mixer?</color> {DataManager.ConvertObjToJson(audioMixer.name)}");
+        if (this.audioMixer != null) Debug.Log($"<color=yellow>Assigned audio mixer?</color> {DataManager.ConvertObjToJson(audioMixer)}");
         else Debug.Log($"<color=red>Audio mixer not loaded....</color>");
 
         //grab the controls 
         //this.controlBindings =
-        this.inputActions = Resources.Load<InputActionAsset>("PlayerActions");// as InputActionMap;
-        Debug.Log($"<color=yellow>Assigned control bindings?</color> {DataManager.ConvertObjToJson(inputActions)}");
+        this.playerInputActions = Resources.Load<InputActionAsset>("PlayerActions");// as InputActionMap;
+        Debug.Log($"<color=yellow>Assigned player control bindings?</color> {DataManager.ConvertObjToJson(playerInputActions)}");
 
+        this.menuInputActions = Resources.Load<InputActionAsset>("MenuActions");// as InputActionMap;
+        Debug.Log($"<color=yellow>Assigned menu control bindings?</color> {DataManager.ConvertObjToJson(menuInputActions)}");
 
         //Debug.Log(PlayerPrefs)    
         LoadUserSettingsFromFile();
