@@ -10,6 +10,9 @@ using UnityEngine.Audio;
 
 public class MenuScripts : AudioController
 {
+
+    //TODO: add debouncers to the onX functions?
+
     protected PlayerInput menuInputs = null;
     protected PlayerInput playerInputs = null;
     public GameObject controlBinderPrefab;
@@ -157,7 +160,7 @@ public class MenuScripts : AudioController
         //TODO: consider using waitUntil/waitWhile
         while (counter < timer)
         {
-            if (counterStarted) counter += Time.fixedDeltaTime; //dont want to count the delta before timer started
+            if (counterStarted) counter += Time.unscaledDeltaTime; //dont want to count the delta before timer started
             else counterStarted = true; //turn timer on
 
             Debug.Log("Current WaitTime: " + counter);
@@ -174,6 +177,8 @@ public class MenuScripts : AudioController
 
         //builtin unity timer
         //if (timer > 0f) yield return new WaitForSecondsRealtime(timer); //non-thread-blocking wait before runnign cancel 
+        
+        //run the cancel function and close the popup
         cancelFunction();
         this.popupOverlay.SetActive(false);
     }
@@ -182,11 +187,11 @@ public class MenuScripts : AudioController
     //note this will not work in the editor
     public void Exitgame()
     {
-        #if !UNITY_EDITOR
-                        Application.Quit();
-        #else
-                EditorApplication.ExitPlaymode();
-        #endif
+        //#if !UNITY_EDITOR
+        //                Application.Quit();
+        //#else
+        //        EditorApplication.ExitPlaymode();
+        //#endif
         //TODO: show confirm prompt; maybe should be callable without being paused?
         //if (gamePaused)
         //{
@@ -195,11 +200,10 @@ public class MenuScripts : AudioController
         System.Action confirmFunction = (() =>
         {
             Debug.Log("confirm pressed");
-            //SetResolution(resArrayIndex);
             #if !UNITY_EDITOR
-                                  Application.Quit();
+                    Application.Quit();
             #else
-                        EditorApplication.ExitPlaymode();
+                    EditorApplication.ExitPlaymode();
             #endif
         });
 
@@ -207,7 +211,6 @@ public class MenuScripts : AudioController
         System.Action cancelFunction = (() =>
         {
             Debug.Log("cancel pressed");
-            //SetResolution(currentIndex, false);
         });
 
         ActionChoicePopup("Are you sure you want to exit the game?", confirmFunction, cancelFunction);

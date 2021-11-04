@@ -37,7 +37,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     {
         get
         {
-            if (!_Instance && count == 0)
+            if (!_Instance) //&& count == 0
             {
                 Debug.Log("<color=green>Setting Up UserSettings _Instance</color>");
                 _Instance = new GameObject().AddComponent<UserSettings>();
@@ -50,34 +50,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         }
     }
 
-    //TODO: https://docs.unity3d.com/Manual/script-Serialization-Custom.html
-    public void OnBeforeSerialize()
-    {
-        Debug.Log("<color=green>OnBeforeSerialize</color>");
-        // Unity is about to read the serializedNodes field's contents.
-        // The correct data must now be written into that field "just in time".
-        //if (serializedNodes == null) serializedNodes = new List<SerializableNode>();
-        //if (root == null) root = new Node();
-        //serializedNodes.Clear();
-        //AddNodeToSerializedNodes(root);
-        // Now Unity is free to serialize this field, and we should get back the expected 
-        // data when it is deserialized later.
-    }
-    public void OnAfterDeserialize()
-    {
-        Debug.Log("<color=green>OnAfterDeserialize</color>");
-        //Unity has just written new data into the serializedNodes field.
-        //let's populate our actual runtime data with those new values.
-        //if (serializedNodes.Count > 0)
-        //{
-        //    ReadNodeFromSerializedNodes(0, out root);
-        //}
-        //else
-        //    root = new Node();
-    }
-
-    //TODO: try out https://assetstore.unity.com/packages/tools/input-management/json-net-for-unity-11347#description for easier/better serialization
-
+    
     //Apparently these are just "easy json" basically and dont have inherent tie ins that are useful for us? 
     //https://docs.unity3d.com/ScriptReference/PlayerPrefs.html
     //https://docs.unity3d.com/Manual/class-PlayerSettings.html
@@ -116,6 +89,36 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     {
 
     }
+
+
+    //TODO: https://docs.unity3d.com/Manual/script-Serialization-Custom.html
+    public void OnBeforeSerialize()
+    {
+        Debug.Log("<color=green>OnBeforeSerialize</color>");
+        // Unity is about to read the serializedNodes field's contents.
+        // The correct data must now be written into that field "just in time".
+        //if (serializedNodes == null) serializedNodes = new List<SerializableNode>();
+        //if (root == null) root = new Node();
+        //serializedNodes.Clear();
+        //AddNodeToSerializedNodes(root);
+        // Now Unity is free to serialize this field, and we should get back the expected 
+        // data when it is deserialized later.
+    }
+    public void OnAfterDeserialize()
+    {
+        Debug.Log("<color=green>OnAfterDeserialize</color>");
+        //Unity has just written new data into the serializedNodes field.
+        //let's populate our actual runtime data with those new values.
+        //if (serializedNodes.Count > 0)
+        //{
+        //    ReadNodeFromSerializedNodes(0, out root);
+        //}
+        //else
+        //    root = new Node();
+    }
+
+    //TODO: try out https://assetstore.unity.com/packages/tools/input-management/json-net-for-unity-11347#description for easier/better serialization
+
 
 
 
@@ -203,35 +206,37 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //set the 0-100 value of the volume
     public void SetVolume(string type, float newValue, bool triggerSave = false)
     {
-        //Debug.Log($"New Audio Setting: {type} @ {newValue} ");
-        if (type == "main" || type == "MainVolume")
+        CheckAudioMixer();//make sure the mixer is loaded...for some reason if you dont it claims that it isnt even when it is
+
+        Debug.Log($"New Audio Setting: {type} @ {newValue} ");
+        if (type == "main" || type == "Main" || type == "MainVolume")
         {
             const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
             SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
             SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
 
             //update the actual value and the tracking
-            UserSettings.Instance.audioData.MainVolume = newValue;
+            audioData.MainVolume = newValue; //UserSettings.Instance.
             m_Volume.floatValue = newValue;
             audioManager.ApplyModifiedProperties();
 
         }
         else
         {
-            if (type == "FXVolume") UserSettings.Instance.audioData.FXVolume = newValue;
-            else if (type == "VoicesVolume") UserSettings.Instance.audioData.VoicesVolume = newValue;
-            else if (type == "MusicVolume") UserSettings.Instance.audioData.MusicVolume = newValue;
+            if (type == "FXVolume") audioData.FXVolume = newValue; //UserSettings.Instance.
+            else if (type == "VoicesVolume") audioData.VoicesVolume = newValue; //UserSettings.Instance.
+            else if (type == "MusicVolume") audioData.MusicVolume = newValue; //UserSettings.Instance.
 
             if (newValue > 0) //when log doesnt break and it technically still makes noise
             {
                 float convertedVolume = Mathf.Log10(newValue) * 20;
                 //this.audioData.GetType().GetProperty(type).SetValue(audioData, convertedVolume);
-                audioMixer.SetFloat(type, convertedVolume);
+                this.audioMixer.SetFloat(type, convertedVolume);
                 Debug.Log($"New volume: {convertedVolume} ");
             }
             else //should mute instead (seems we cant access that option directly via script--just set to absolute min volume instead?
             {
-                audioMixer.SetFloat(type, -80f);
+                this.audioMixer.SetFloat(type, -80f);
             }
         }
         //TODO: trigger save
@@ -241,7 +246,10 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //return the 0-100 value of the volume
     public float GetVolume(string type)
     {
-        if (type == "main")
+        //Debug.Log($"Get Audio Setting: {type} @ {newValue} ");
+        CheckAudioMixer();//make sure the mixer is loaded...for some reason if you dont it claims that it isnt even when it is
+
+        if (type == "main" || type == "Main" || type == "MainVolume")
         {
             const string AudioSettingsAssetPath = "ProjectSettings/AudioManager.asset";
             SerializedObject audioManager = new SerializedObject(UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AudioSettingsAssetPath)[0]);
@@ -251,11 +259,11 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         }
         else
         {
-            audioMixer.GetFloat(type, out float rawVolume);
+            this.audioMixer.GetFloat(type, out float rawVolume);
             if (rawVolume == -80f) return 0;
             else
             {
-                float convertedVolume = Mathf.Pow((rawVolume / 20), 10f); //reverse the conversion 
+                float convertedVolume = Mathf.Pow(10f, (rawVolume / 20)); //reverse the conversion 
                 return convertedVolume;
             }
         }
@@ -296,12 +304,13 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         }
         Debug.Log($"loaded settings results [direct]: {DataManager.ConvertObjToJson(this.screenData)}, " +
             $" {DataManager.ConvertObjToJson(this.audioData)}");
-        Debug.Log($"loaded settings results [helper]: {DataManager.ConvertObjToJson(this)}");
+        //Debug.Log($"loaded settings results [helper]: {DataManager.ConvertObjToJson(this)}");
 
     }
 
-    //pushes all the internal data to the actionable gamestate data
+    //pushes all the internal data to the actionable gamestate data without triggering a file save
     private void PushAllDataToActive(){
+        Debug.Log("<color=blue>Pushing data to active</color>");
         UpdateResolution();
         SetVolume("MainVolume", this.audioData.MainVolume);
         SetVolume("FXVolume", this.audioData.FXVolume);
@@ -312,6 +321,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //sets all default data
     private void InitializeDefaultData()
     {
+        Debug.Log("<color=blue>Init default data</color>");
         //todo: store initial states for this? 
         this.screenData.isFullscreen = Screen.fullScreen;
         this.screenData.isResizable = !Screen.fullScreen;
@@ -328,6 +338,18 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
         //push the datas to active usage
         PushAllDataToActive();
+    }
+
+
+    private void CheckAudioMixer()
+    {
+        if(this.audioMixer == null)
+        {
+            this.audioMixer = Resources.Load<AudioMixer>("ResonanceAudioMixer") as AudioMixer;
+            if (this.audioMixer != null) Debug.Log($"<color=yellow>Assigned audio mixer?</color> {DataManager.ConvertObjToJson(audioMixer)}");
+            else Debug.Log($"<color=red>Audio mixer not loaded....</color>");
+        }
+        else Debug.Log($"<color=green>Audio mixer already loaded</color> {DataManager.ConvertObjToJson(audioMixer)}");
     }
 
     private void Awake()
@@ -348,8 +370,19 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         this.playerInputActions = Resources.Load<InputActionAsset>("PlayerActions");// as InputActionMap;
         Debug.Log($"<color=yellow>Assigned player control bindings?</color> {DataManager.ConvertObjToJson(playerInputActions)}");
 
-        this.menuInputActions = Resources.Load<InputActionAsset>("MenuActions");// as InputActionMap;
-        Debug.Log($"<color=yellow>Assigned menu control bindings?</color> {DataManager.ConvertObjToJson(menuInputActions)}");
+        //loop through the maps 
+        foreach(InputActionMap actionMap in this.playerInputActions.actionMaps)
+        {
+            //loop through the actions of each map
+            foreach (InputAction action in actionMap.actions)
+            {
+
+            }
+                
+        }
+
+        //this.menuInputActions = Resources.Load<InputActionAsset>("MenuActions");// as InputActionMap;
+        //Debug.Log($"<color=yellow>Assigned menu control bindings?</color> {DataManager.ConvertObjToJson(menuInputActions)}");
 
         //Debug.Log(PlayerPrefs)    
         LoadUserSettingsFromFile();

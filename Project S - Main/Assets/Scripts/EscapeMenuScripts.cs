@@ -357,14 +357,11 @@ public class EscapeMenuScripts : MenuScripts
     public void OnUpdateMainVolume(float newValue)
     {
         //TODO: consider having this operate on the mixer instead of the main project volume?  project volume is probably better due to core integration or something
-        //Debug.Log($"New setting: {newValue} ");
-        UserSettings.Instance.SetVolume("main", newValue);
+        UserSettings.Instance.SetVolume("main", newValue, true);
     }
-
-
-    public void OnUpdateFXVolume(float newValue) { UserSettings.Instance.SetVolume("FXVolume", newValue); }
-    public void OnUpdateMusicVolume(float newValue) { UserSettings.Instance.SetVolume("MusicVolume", newValue); }
-    public void OnUpdateVoicesVolume(float newValue) { UserSettings.Instance.SetVolume("VoicesVolume", newValue); }
+    public void OnUpdateFXVolume(float newValue) { UserSettings.Instance.SetVolume("FXVolume", newValue, true); }
+    public void OnUpdateMusicVolume(float newValue) { UserSettings.Instance.SetVolume("MusicVolume", newValue, true); }
+    public void OnUpdateVoicesVolume(float newValue) { UserSettings.Instance.SetVolume("VoicesVolume", newValue, true); }
 
     //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
     //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
@@ -415,7 +412,13 @@ public class EscapeMenuScripts : MenuScripts
         //TODO: have a location that saves the value between sessions that we grab from;
         //TODO: move functions to settings and/or datamanager
         float mainVolume = UserSettings.Instance.GetVolume("main");
-        this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().value = mainVolume;
+        this.AudioOptionsMenu.transform.Find("GlobalVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().SetValueWithoutNotify(mainVolume);
+        float MusicVolume = UserSettings.Instance.GetVolume("MusicVolume");
+        this.AudioOptionsMenu.transform.Find("MusicVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().SetValueWithoutNotify(MusicVolume);
+        float FXVolume = UserSettings.Instance.GetVolume("FXVolume");
+        this.AudioOptionsMenu.transform.Find("FXVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().SetValueWithoutNotify(FXVolume);
+        float VoicesVolume = UserSettings.Instance.GetVolume("VoicesVolume");
+        this.AudioOptionsMenu.transform.Find("VoiceVolume").gameObject.transform.Find("Slider").GetComponent<Slider>().SetValueWithoutNotify(VoicesVolume);
 
         //Debug.Log(this.menuInputs);
         //Debug.Log(this.playerInputs);
