@@ -16,14 +16,17 @@ public class Combatant : MonoBehaviour
     protected float invincibleTimer;
 
     protected Rigidbody2D rigidbody2d;
-    protected float horizontal;
-    protected float vertical;
-
-    protected Animator animator;
+    protected Vector2 move = new Vector2(0, 0);
     protected Vector2 lookDirection = new Vector2(1, 0);
 
+    protected Animator animator;
     protected AudioSource audioSource;
+
     public AudioClip damagedAudio;
+    public ParticleSystem damagedEffect;
+
+    public AudioClip healedAudio;
+    public ParticleSystem healedEffect;
 
     // Start is called before the first frame update; does not run in child class instances without direct call
     protected virtual void Start()
@@ -53,37 +56,45 @@ public class Combatant : MonoBehaviour
     //updates not based on current framerate
     protected virtual void FixedUpdate()
     {
+        //update their position
         //Debug.Log("What is rigidbody2d here", rigidbody2d);
         Vector2 position = rigidbody2d.position;
-        position.x = position.x + speed * horizontal * Time.deltaTime;
-        position.y = position.y + speed * vertical * Time.deltaTime;
+        position.x = position.x + speed * move.x * Time.fixedDeltaTime;
+        position.y = position.y + speed * move.y * Time.fixedDeltaTime;
 
         rigidbody2d.MovePosition(position);
     }
 
-
+    //play targeted sound
     public void PlaySound(AudioClip clip)
     {
         audioSource.PlayOneShot(clip);
     }
 
+    public void PlayParticles(ParticleSystem particles)
+    {
 
+    }
+
+    //update health 
     public virtual void ChangeHealth(int amount)
     {
         if (amount < 0)
         {
-            if (isInvincible)
-                return;
+            if (isInvincible) return; //no dmg
 
+            //take damage and gain iFrames
             isInvincible = true;
             invincibleTimer = timeInvincible;
-            animator.SetTrigger("Hit");
- 
-            PlaySound(damagedAudio);
+
+            animator.SetTrigger("Hit");//hit animation
+            damagedEffect.Play();//play visualfx
+            PlaySound(damagedAudio);//damaged sound
         }
         else
         {
-
+            healedEffect.Play();//play visualfx
+            PlaySound(healedAudio);//healed sound
         }
 
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);

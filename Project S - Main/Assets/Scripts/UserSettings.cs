@@ -312,7 +312,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     private void PushAllDataToActive(){
         Debug.Log("<color=blue>Pushing data to active</color>");
         UpdateResolution();
-        SetVolume("MainVolume", this.audioData.MainVolume);
+        //SetVolume("MainVolume", this.audioData.MainVolume); //already done by unity since using audioManger
         SetVolume("FXVolume", this.audioData.FXVolume);
         SetVolume("MusicVolume", this.audioData.MusicVolume);
         SetVolume("VoicesVolume", this.audioData.VoicesVolume);

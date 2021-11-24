@@ -6,38 +6,13 @@ using UnityEngine.InputSystem;
 public class MCController : Combatant
 {
     //COMMENTED MEMEBERS comes from parent class
-    //public float speed = 3.0f;
-
-    //public int maxHealth = 5;
-
-    //public int health { get { return currentHealth; } }
-    //protected int currentHealth;
-
-    //public float timeInvincible = 2.0f;
-    //protected bool isInvincible;
-    //protected float invincibleTimer;
-
-    //protected Rigidbody2D rigidbody2d;
-    //protected float horizontal;
-    //protected float vertical;
-
-    //protected Animator animator;
-    //protected Vector2 lookDirection = new Vector2(1, 0);
-
-    //protected AudioSource audioSource;
-    //public AudioClip damagedAudio;
-
+    
     public GameObject projectilePrefab;
-    public ParticleSystem heroDamagedEffect;
-    public ParticleSystem heroHealedEffect;
     public AudioClip cogThrowAudio;
     public PlayerInput playerInput;
 
     private Vector3 rawInputMovement;
     private Vector3 smoothInputMovement;
-
-    private Vector2 move = new Vector2(0,0);
-
 
     //Current Control Scheme
     private string currentControlScheme;
@@ -60,9 +35,23 @@ public class MCController : Combatant
     // Update is called once per frame
     protected override void Update()
     {
-        //base.Update();
-        //horizontal = Input.GetAxis("Horizontal");
-        //vertical = Input.GetAxis("Vertical");
+        //update iFrames
+        base.Update();    
+
+        //if (isInvincible)
+        //{
+        //    invincibleTimer -= Time.deltaTime;
+        //    if (invincibleTimer < 0)
+        //        isInvincible = false;
+        //}
+
+    }
+
+    //updates not based on current framerate
+    protected override void FixedUpdate()
+    {
+        //update the position
+        base.FixedUpdate();
 
         //get our look vector
         if (!Mathf.Approximately(move.x, 0.0f) || !Mathf.Approximately(move.y, 0.0f))
@@ -70,48 +59,17 @@ public class MCController : Combatant
             lookDirection.Set(move.x, move.y);
             lookDirection.Normalize();
         }
-
+        //animate change
         animator.SetFloat("Look X", lookDirection.x);
         animator.SetFloat("Look Y", lookDirection.y);
         animator.SetFloat("Speed", move.magnitude);
 
-        Vector2 position = transform.position;
-        position.y = position.y + 3f * move.y * Time.deltaTime;
-        position.x = position.x + 3f * move.x * Time.deltaTime;
-        transform.position = position;
-
-        if (isInvincible)
-        {
-            invincibleTimer -= Time.deltaTime;
-            if (invincibleTimer < 0)
-                isInvincible = false;
-        }
-
     }
 
-
-    public override void ChangeHealth(int amount)
-    {
-        if (amount < 0)
-        {
-            if (isInvincible)
-                return;
-
-            isInvincible = true;
-            invincibleTimer = timeInvincible;
-            animator.SetTrigger("Hit");
-            heroDamagedEffect.Play();
-            PlaySound(damagedAudio);
-        }
-        else
-        {
-            heroHealedEffect.Play();
-        }
-
-        currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
-        UIHealthBar.instance.SetValue(currentHealth / (float)maxHealth);
-    }
-
+    //public override void ChangeHealth(int amount)
+    //{
+    //    base.ChangeHealth(amount);
+    //}
 
     void Launch()
     {
@@ -131,8 +89,6 @@ public class MCController : Combatant
 
     //This is called from PlayerInput; when a joystick or arrow keys has been pushed.
     //It stores the input Vector as a Vector3 to then be used by the smoothing function.
-
-
     public void OnMovement(InputAction.CallbackContext value)
     {
         //Debug.Log("Attempting to move");

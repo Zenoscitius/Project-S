@@ -107,11 +107,16 @@ public static class DataManager
         return EditorJsonUtility.ToJson(obj, true);
     }
 
+    //public static object LoadResource<T>()
+    //{
+        //if (< T > == 'AudioMixer') ;
+        //return Resources.Load<AudioMixer>("ResonanceAudioMixer") as AudioMixer;
+    //}
+
     public static void CleanupMemory()
     {
-        https://docs.unity3d.com/ScriptReference/Resources.UnloadUnusedAssets.html
+        //https://docs.unity3d.com/ScriptReference/Resources.UnloadUnusedAssets.html
         Resources.UnloadUnusedAssets();
-
         return;
     }
 

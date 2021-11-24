@@ -40,7 +40,7 @@ public class StartMenuScripts : MenuScripts
     }
 
 
-    void Start()
+     void Start()
     //void OnEnable()
     {
 
