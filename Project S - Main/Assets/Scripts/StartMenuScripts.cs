@@ -40,10 +40,9 @@ public class StartMenuScripts : MenuScripts
     }
 
 
-     void Start()
     //void OnEnable()
+    protected override void Start()
     {
-
         //Debug.Log($"temp init spot for userSettings {UserSettings.Instance}");
         //
         //https://docs.unity3d.com/2020.1/Documentation/Manual/UIE-LoadingUXMLcsharp.html

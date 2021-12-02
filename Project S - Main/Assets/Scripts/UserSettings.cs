@@ -340,7 +340,6 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         PushAllDataToActive();
     }
 
-
     private void CheckAudioMixer()
     {
         if(this.audioMixer == null)
@@ -386,10 +385,14 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
         //Debug.Log(PlayerPrefs)    
         LoadUserSettingsFromFile();
+
+        //QualitySettings.vSyncCount = 0;
+        //Application.targetFrameRate = 10;
     }
 
     private void Start()
     {
+
         //start doesnt get triggered
         Debug.Log("User Settings instance up and running from start woot!");
 

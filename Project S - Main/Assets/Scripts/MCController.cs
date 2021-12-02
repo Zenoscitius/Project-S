@@ -24,12 +24,9 @@ public class MCController : Combatant
         //Debug.Log("MC Start fxn");
         base.Start();
         //animator = GetComponent<Animator>();
-
         //currentHealth = maxHealth;
         //rigidbody2d = GetComponent<Rigidbody2D>();
         //audioSource = GetComponent<AudioSource>();
-        //QualitySettings.vSyncCount = 0;
-        //Application.targetFrameRate = 10;
     }
 
     // Update is called once per frame
@@ -37,14 +34,6 @@ public class MCController : Combatant
     {
         //update iFrames
         base.Update();    
-
-        //if (isInvincible)
-        //{
-        //    invincibleTimer -= Time.deltaTime;
-        //    if (invincibleTimer < 0)
-        //        isInvincible = false;
-        //}
-
     }
 
     //updates not based on current framerate
@@ -78,7 +67,7 @@ public class MCController : Combatant
         Projectile projectile = projectileObject.GetComponent<Projectile>();
         projectile.Launch(lookDirection, 300);
 
-        animator.SetTrigger("Launch");
+        PlayAnimation("Launch");
         //PlaySound(cogThrowAudio);
     }
 

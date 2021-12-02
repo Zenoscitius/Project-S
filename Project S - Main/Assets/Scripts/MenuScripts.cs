@@ -64,8 +64,6 @@ public class MenuScripts : AudioController
         UpdateBindingDisplay();
     }
 
-
-
     /// <summary>
     /// Trigger a refresh of the currently displayed binding.
     /// </summary>
@@ -92,7 +90,9 @@ public class MenuScripts : AudioController
         //m_UpdateBindingUIEvent?.Invoke(this, displayString, deviceLayoutName, controlPath);
     }
 
-    //TODO: turn into a class of its own
+
+
+    //TODO: turn into a class of its own probs
     //https://gamedevbeginner.com/coroutines-in-unity-when-and-how-to-use-them/
     //https://gamedevbeginner.com/how-to-make-countdown-timer-in-unity-minutes-seconds/
     //popup to confirm/reject actions 
@@ -187,15 +187,6 @@ public class MenuScripts : AudioController
     //note this will not work in the editor
     public void Exitgame()
     {
-        //#if !UNITY_EDITOR
-        //                Application.Quit();
-        //#else
-        //        EditorApplication.ExitPlaymode();
-        //#endif
-        //TODO: show confirm prompt; maybe should be callable without being paused?
-        //if (gamePaused)
-        //{
-
         //set the resolution and save
         System.Action confirmFunction = (() =>
         {
@@ -228,7 +219,7 @@ public class MenuScripts : AudioController
 
     }
     //// Update is called once per frame
-    //void Update()
+    //protected virtual void Update()
     //{
 
     //}

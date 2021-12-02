@@ -10,6 +10,7 @@ public class Combatant : MonoBehaviour
     public int maxHealth = 5;
     public int health { get { return currentHealth; } }
     protected int currentHealth;
+    //TODO: visual healthbar
 
     public float timeInvincible = 2.0f;
     protected bool isInvincible;
@@ -44,7 +45,7 @@ public class Combatant : MonoBehaviour
     // Update is called once per frame
     protected virtual void Update()
     {
-
+        //check iframes
         if (isInvincible)
         {
             invincibleTimer -= Time.deltaTime;
@@ -68,13 +69,21 @@ public class Combatant : MonoBehaviour
     //play targeted sound
     public void PlaySound(AudioClip clip)
     {
-        audioSource.PlayOneShot(clip);
+        if(clip != null) audioSource.PlayOneShot(clip);
     }
 
-    public void PlayParticles(ParticleSystem particles)
+    //play targeted animation
+    public void PlayAnimation(string animationName)
     {
-
+        this.animator.SetTrigger(animationName);
     }
+
+    //public void PlayParticles(ParticleSystem particles)
+    //{
+    //    particles.Play();
+    //}
+
+
 
     //update health 
     public virtual void ChangeHealth(int amount)
@@ -87,7 +96,7 @@ public class Combatant : MonoBehaviour
             isInvincible = true;
             invincibleTimer = timeInvincible;
 
-            animator.SetTrigger("Hit");//hit animation
+            PlayAnimation("Hit");//hit animation
             damagedEffect.Play();//play visualfx
             PlaySound(damagedAudio);//damaged sound
         }
@@ -100,6 +109,4 @@ public class Combatant : MonoBehaviour
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
         UIHealthBar.instance.SetValue(currentHealth / (float)maxHealth);
     }
-
-
 }
