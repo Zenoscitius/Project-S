@@ -7,6 +7,10 @@ using System.IO; //for Path
 using UnityEngine.Audio;
 using UnityEditor;
 
+
+//For Debugging and in-engine inline text changes
+//https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/StyledText.html
+
 //store the current settings for inputs and other values for access by other code
 
 //[System.Serializable]
@@ -87,14 +91,22 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     [System.Serializable]
     public struct ControlsData
     {
-
+        public string TestControlString;
     }
 
+
+    [System.Serializable]
+    public struct SaveData
+    {
+        public ControlsData controlsData;
+        public AudioData audioData;
+        public ScreenData screenData;
+    }
 
     //TODO: https://docs.unity3d.com/Manual/script-Serialization-Custom.html
     public void OnBeforeSerialize()
     {
-        Debug.Log("<color=green>OnBeforeSerialize</color>");
+        Debug.Log("<color=green>OnBeforeSerialize:</color> ");
         // Unity is about to read the serializedNodes field's contents.
         // The correct data must now be written into that field "just in time".
         //if (serializedNodes == null) serializedNodes = new List<SerializableNode>();
@@ -106,7 +118,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     }
     public void OnAfterDeserialize()
     {
-        Debug.Log("<color=green>OnAfterDeserialize</color>");
+        Debug.Log("<color=green>OnAfterDeserialize:</color> ");
         //Unity has just written new data into the serializedNodes field.
         //let's populate our actual runtime data with those new values.
         //if (serializedNodes.Count > 0)
@@ -123,10 +135,13 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
 
     //enumerate the actual data stored 
+    public SaveData saveData;
     public ScreenData screenData;
     public AudioData audioData;
-    private Resolution currentResolution;//  Screen.currentResolution;?
+    public ControlsData controlsData;
+
     public AudioMixer audioMixer; //TODO: do a private vs public pass
+    private Resolution currentResolution;//  Screen.currentResolution;?
     public InputActionAsset playerInputActions;
     public InputActionAsset menuInputActions;
     //public PlayerPrefs unitySettings = new PlayerPrefs();
@@ -137,6 +152,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
 
     private string settingsFileName = "settings.dat";
+    private bool triggerSave = false;
 
     //SwitchCurrentActionMap();
 
@@ -151,6 +167,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         //.WithBindingGroup("Gamepad")
         //.WithCancelingThrough("<Keyboard>/escape");
 
+        //this should apply to override path, which is not data-persistent 
         var rebindOperation = actionToRebind.PerformInteractiveRebinding()
             .WithControlsExcluding("<Pointer>/position") // Don"t bind to mouse positionS
             .WithControlsExcluding("<Pointer>/delta") // Don"t bind to mouse movement deltas
@@ -161,6 +178,14 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
                 operation.Dispose();//free memory otherwise it is a leak
             })
             .Start();
+    }
+
+
+    //updates the internal datastructure for storing the controls information
+    private void updateSavedBindings()
+    {
+
+        //if (triggerSave) SaveUserSettingsToFile();
     }
 
     //update to pass resolution
@@ -271,12 +296,11 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
 
 
-    //save the settings as JSON to a file at a location TBD
+    //save the settings as JSON to a file at a location TBD (dont do any data work here, should always save as-is)
     public void SaveUserSettingsToFile()
     {
         string settingsJson = JsonUtility.ToJson(this);
         Debug.Log($"SaveUserSettingsToFile: {settingsJson}");
-
         DataManager.SaveJsonDataToFile(settingsFileName, settingsJson);
     }
 
@@ -286,14 +310,16 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         Debug.Log(">LoadUserSettingsFromFile()");
         //JSON.Parse(jsonString);
         //JsonUtility.FromJson(this);
-
+        Debug.Log($"<color=green>playerInputActions json: {playerInputActions.ToJson()} </color>");
         string jsonData = DataManager.LoadJsonDataFromFile(settingsFileName);
-
+        Debug.Log($"<color=yellow>raw json: {jsonData}  </color>");
         //Debug.Log($"loaded user settings Json Data: {DataManager.ConvertObjToJson(jsonData)}");
         if (jsonData.Length > 3)//if we actually have data...
         {
             Debug.Log("<color=green>User Settings file detected! </color>");
             JsonUtility.FromJsonOverwrite(jsonData, this); //EditorJsonUtility
+            JsonUtility.FromJsonOverwrite(jsonData, this.saveData); //EditorJsonUtility
+            Debug.Log($"<color=yellow>this.saveData struct: { this.saveData}  </color>");
 
             PushAllDataToActive();
         }
@@ -302,10 +328,13 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             Debug.Log("<color=red>NO User Settings file!  Engage defaults</color>");
             InitializeDefaultData();
         }
-        Debug.Log($"loaded settings results [direct]: {DataManager.ConvertObjToJson(this.screenData)}, " +
-            $" {DataManager.ConvertObjToJson(this.audioData)}");
-        //Debug.Log($"loaded settings results [helper]: {DataManager.ConvertObjToJson(this)}");
+        Debug.Log($"loaded settings results [direct]: screenData=>{DataManager.ConvertObjToJson(this.screenData)}, " +
+            $" audiodata=>{DataManager.ConvertObjToJson(this.audioData)}, " +
+            $" controlsData=>{DataManager.ConvertObjToJson(this.controlsData)}");
 
+        //Debug.Log($"<color=green>playerInputActions json: {playerInputActions.ToJson()} </color>");
+        //Debug.Log($"loaded settings results [helper]: {DataManager.ConvertObjToJson(this)}");
+        //var maps = InputActionMap.FromJson(json);
     }
 
     //pushes all the internal data to the actionable gamestate data without triggering a file save
@@ -316,6 +345,9 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         SetVolume("FXVolume", this.audioData.FXVolume);
         SetVolume("MusicVolume", this.audioData.MusicVolume);
         SetVolume("VoicesVolume", this.audioData.VoicesVolume);
+
+        //update the overridePath's of the controls 
+
     }
 
     //sets all default data
@@ -353,7 +385,13 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
     private void Awake()
     {
-        if (count != 0) return;
+
+
+        if (count != 0)
+        {
+            Debug.Log("<color=red>User Settings instance trying to be awoken again....</color> ");
+            return;
+        }
         count++;
 
         Debug.Log("<color=green>User Settings instance up and running from awake woot!</color> ");

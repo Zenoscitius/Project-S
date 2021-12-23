@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 //Class to implement behavior for all fightable/damageable units [this includes MC]
 public class Combatant : MonoBehaviour
@@ -10,7 +11,8 @@ public class Combatant : MonoBehaviour
     public int maxHealth = 5;
     public int health { get { return currentHealth; } }
     protected int currentHealth;
-    //TODO: visual healthbar
+    protected UIHealthBar UIHealthBar;
+    public Image healthBarMask;    //TODO: visual healthbar
 
     public float timeInvincible = 2.0f;
     protected bool isInvincible;
@@ -37,6 +39,8 @@ public class Combatant : MonoBehaviour
         rigidbody2d = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
         currentHealth = maxHealth;
+
+        UIHealthBar = new UIHealthBar(healthBarMask, false);
     }
 
     //https://learn.unity.com/tutorial/coroutines?uv=2019.3&projectId=5c88f2c1edbc2a001f873ea5
@@ -67,9 +71,11 @@ public class Combatant : MonoBehaviour
     }
 
     //play targeted sound
+    //https://gamedevbeginner.com/10-unity-audio-tips-that-you-wont-find-in-the-tutorials/
     public void PlaySound(AudioClip clip)
     {
-        if(clip != null) audioSource.PlayOneShot(clip);
+        //PlayOneShot can also take a float [0,1] for volume of just this clip
+        if (clip != null) audioSource.PlayOneShot(clip);
     }
 
     //play targeted animation
@@ -82,7 +88,6 @@ public class Combatant : MonoBehaviour
     //{
     //    particles.Play();
     //}
-
 
 
     //update health 
@@ -107,6 +112,7 @@ public class Combatant : MonoBehaviour
         }
 
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
-        UIHealthBar.instance.SetValue(currentHealth / (float)maxHealth);
+        UIHealthBar.SetVisibility(currentHealth != maxHealth);
+        UIHealthBar.SetValue(currentHealth / (float)maxHealth);
     }
 }

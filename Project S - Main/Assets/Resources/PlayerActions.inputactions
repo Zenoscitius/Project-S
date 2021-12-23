@@ -100,7 +100,7 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "WASD Keys",
+                    "name": "MovementKeys",
                     "id": "60bb8115-7450-446f-9024-a84f0f9dc5b5",
                     "path": "2DVector",
                     "interactions": "",

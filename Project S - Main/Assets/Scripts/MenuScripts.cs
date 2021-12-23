@@ -28,6 +28,9 @@ public class MenuScripts : AudioController
         //create a controlbinder as a child of the scroller
         GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
 
+        //Finding Gameobjects cost
+        //https://answers.unity.com/questions/1597022/the-better-and-the-less-expensive-way-to-find-a-ga.html
+
         //TODO: also make sure the recttransform part of the canvas renderer is behaving correctly?
         RectTransform rectTransform = controlBinder.GetComponent<RectTransform>();
         Rect rect = rectTransform.rect;
