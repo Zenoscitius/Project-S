@@ -10,7 +10,7 @@ using UnityEngine.Audio;
 
 public class MenuScripts : AudioController
 {
-
+    //TODO: add "wait till done moving" detection on audio sliders etc for hot-saving? 
     //TODO: add debouncers to the onX functions?
 
     protected PlayerInput menuInputs = null;

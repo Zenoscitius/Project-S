@@ -59,7 +59,6 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //https://docs.unity3d.com/ScriptReference/PlayerPrefs.html
     //https://docs.unity3d.com/Manual/class-PlayerSettings.html
 
-
     //TODO: maybe change the name and expand beyond just resolution-- such as other screen data
     [System.Serializable]
     public struct ScreenData
@@ -88,10 +87,16 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         public float VoicesVolume;
     }
 
+
+    /* a) for loops on List<T> are a bit more than 2 times cheaper than foreach loops on List<T>, 
+     * b) Looping on array is around 2 times cheaper than looping on List<T>, 
+     * c) looping on array using for is 5 times cheaper than looping on List<T> using foreach (which most of us do).*/
+    //https://stackoverflow.com/questions/365615/in-net-which-loop-runs-faster-for-or-foreach/365658#365658
+
     [System.Serializable]
     public struct ControlsData
     {
-        public string TestControlString;
+        public List<ControlPairing> controlPairingList;
     }
 
 
@@ -152,7 +157,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
 
     private string settingsFileName = "settings.dat";
-    private bool triggerSave = false;
+    private bool triggerSaveOnChange = false;
 
     //SwitchCurrentActionMap();
 
@@ -176,6 +181,9 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             .OnComplete(operation => {
                 Debug.Log($"Rebound '{actionToRebind}' to '{operation.selectedControl}'");
                 operation.Dispose();//free memory otherwise it is a leak
+
+                //manage json data for it
+
             })
             .Start();
     }
@@ -185,11 +193,11 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     private void updateSavedBindings()
     {
 
-        //if (triggerSave) SaveUserSettingsToFile();
+        //if (triggerSaveOnChange) SaveUserSettingsToFile();
     }
 
     //update to pass resolution
-    public void UpdateResolution(Resolution newResolution)
+    public void UpdateResolution(Resolution newResolution, bool triggerSaveOnChange = false)
     {
         //TODO: maybe make sure that this is a valid resolution before pushing it? 
 
@@ -211,14 +219,14 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         this.screenData.refreshRate = newResolution.refreshRate;
         Screen.SetResolution(newResolution.width, newResolution.height, this.screenData.isFullscreen, newResolution.refreshRate);
         //this.currentResolution = newResolution;
-        //if (triggerSave) SaveUserSettingsToFile();
+        if (triggerSaveOnChange || this.triggerSaveOnChange) SaveUserSettingsToFile();
     }
 
     //push saved screendata to live
     public void UpdateResolution()
     {
         Screen.SetResolution(this.screenData.width, this.screenData.height, this.screenData.isFullscreen, this.screenData.refreshRate);
-        //if (triggerSave) SaveUserSettingsToFile();
+        if (triggerSaveOnChange || this.triggerSaveOnChange) SaveUserSettingsToFile();
     }
 
 
@@ -229,7 +237,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
     //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
     //set the 0-100 value of the volume
-    public void SetVolume(string type, float newValue, bool triggerSave = false)
+    public void SetVolume(string type, float newValue, bool triggerSaveOnChange = false)
     {
         CheckAudioMixer();//make sure the mixer is loaded...for some reason if you dont it claims that it isnt even when it is
 
@@ -265,7 +273,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             }
         }
         //TODO: trigger save
-        if(triggerSave) SaveUserSettingsToFile();
+        if(triggerSaveOnChange || this.triggerSaveOnChange) SaveUserSettingsToFile();
     }
 
     //return the 0-100 value of the volume
@@ -310,16 +318,16 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         Debug.Log(">LoadUserSettingsFromFile()");
         //JSON.Parse(jsonString);
         //JsonUtility.FromJson(this);
-        Debug.Log($"<color=green>playerInputActions json: {playerInputActions.ToJson()} </color>");
+        Debug.Log($"<color=yellow> playerInputActions json: {playerInputActions.ToJson()} </color>");
         string jsonData = DataManager.LoadJsonDataFromFile(settingsFileName);
-        Debug.Log($"<color=yellow>raw json: {jsonData}  </color>");
+        Debug.Log($"<color=yellow> raw json: {jsonData}  </color>");
         //Debug.Log($"loaded user settings Json Data: {DataManager.ConvertObjToJson(jsonData)}");
         if (jsonData.Length > 3)//if we actually have data...
         {
             Debug.Log("<color=green>User Settings file detected! </color>");
-            JsonUtility.FromJsonOverwrite(jsonData, this); //EditorJsonUtility
+            //JsonUtility.FromJsonOverwrite(jsonData, this); //EditorJsonUtility
             JsonUtility.FromJsonOverwrite(jsonData, this.saveData); //EditorJsonUtility
-            Debug.Log($"<color=yellow>this.saveData struct: { this.saveData}  </color>");
+            Debug.Log($"<color=yellow>this.saveData from jsonoverwrite: {this.saveData}  </color>");
 
             PushAllDataToActive();
         }
@@ -366,7 +374,22 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         this.audioData.MusicVolume = 100f;
         this.audioData.VoicesVolume = 100f;
 
-        //no need to do default controls since theyre defined already
+        //no need to do default controls since theyre defined already, but we do want to remove the overrides
+        //loop through the maps 
+        foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
+        {
+            //Debug.Log($"<color=yellow>actionMap</color> {DataManager.ConvertObjToJson(actionMap)}");
+
+            //loop through the actions of each map
+            foreach (InputAction action in actionMap.actions)
+            {
+                action.RemoveAllBindingOverrides();
+                //Debug.Log($"<color=yellow>input action </color> {DataManager.ConvertObjToJson(action)}");
+                //Debug.Log($"<color=yellow>input action </color> {(action)}");
+                //this.controlsData.controlPairingList.Add(new ControlPairing(action.name));
+            }
+
+        }
 
         //push the datas to active usage
         PushAllDataToActive();
@@ -385,7 +408,6 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
     private void Awake()
     {
-
 
         if (count != 0)
         {
@@ -407,13 +429,20 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         this.playerInputActions = Resources.Load<InputActionAsset>("PlayerActions");// as InputActionMap;
         Debug.Log($"<color=yellow>Assigned player control bindings?</color> {DataManager.ConvertObjToJson(playerInputActions)}");
 
+
+
+
         //loop through the maps 
         foreach(InputActionMap actionMap in this.playerInputActions.actionMaps)
         {
+            //Debug.Log($"<color=yellow>actionMap</color> {DataManager.ConvertObjToJson(actionMap)}");
+
             //loop through the actions of each map
             foreach (InputAction action in actionMap.actions)
             {
-
+                //Debug.Log($"<color=yellow>input action </color> {DataManager.ConvertObjToJson(action)}");
+                //Debug.Log($"<color=yellow>input action </color> {(action)}");
+                //this.controlsData.controlPairingList.Add(new ControlPairing(action.name));
             }
                 
         }
@@ -430,10 +459,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
     private void Start()
     {
-
         //start doesnt get triggered
-        Debug.Log("User Settings instance up and running from start woot!");
-
-
+        Debug.Log("User Settings instance up and running from start.  This shouldnt ever actually trigger");
     }
 }
