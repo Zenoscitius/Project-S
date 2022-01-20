@@ -141,9 +141,9 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
 
     //enumerate the actual data stored 
     public SaveData saveData;
-    public ScreenData screenData;
-    public AudioData audioData;
-    public ControlsData controlsData;
+    //public ScreenData screenData;
+    //public AudioData audioData;
+    //public ControlsData controlsData;
 
     public AudioMixer audioMixer; //TODO: do a private vs public pass
     private Resolution currentResolution;//  Screen.currentResolution;?
@@ -214,10 +214,10 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             return;
         }
 
-        this.screenData.height = newResolution.height;
-        this.screenData.width = newResolution.width;
-        this.screenData.refreshRate = newResolution.refreshRate;
-        Screen.SetResolution(newResolution.width, newResolution.height, this.screenData.isFullscreen, newResolution.refreshRate);
+        this.saveData.screenData.height = newResolution.height;
+        this.saveData.screenData.width = newResolution.width;
+        this.saveData.screenData.refreshRate = newResolution.refreshRate;
+        Screen.SetResolution(newResolution.width, newResolution.height, this.saveData.screenData.isFullscreen, newResolution.refreshRate);
         //this.currentResolution = newResolution;
         if (triggerSaveOnChange || this.triggerSaveOnChange) SaveUserSettingsToFile();
     }
@@ -225,7 +225,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //push saved screendata to live
     public void UpdateResolution()
     {
-        Screen.SetResolution(this.screenData.width, this.screenData.height, this.screenData.isFullscreen, this.screenData.refreshRate);
+        Screen.SetResolution(this.saveData.screenData.width, this.saveData.screenData.height, this.saveData.screenData.isFullscreen, this.saveData.screenData.refreshRate);
         if (triggerSaveOnChange || this.triggerSaveOnChange) SaveUserSettingsToFile();
     }
 
@@ -249,21 +249,21 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             SerializedProperty m_Volume = audioManager.FindProperty("m_Volume");
 
             //update the actual value and the tracking
-            audioData.MainVolume = newValue; //UserSettings.Instance.
+            saveData.audioData.MainVolume = newValue; //UserSettings.Instance.
             m_Volume.floatValue = newValue;
             audioManager.ApplyModifiedProperties();
 
         }
         else
         {
-            if (type == "FXVolume") audioData.FXVolume = newValue; //UserSettings.Instance.
-            else if (type == "VoicesVolume") audioData.VoicesVolume = newValue; //UserSettings.Instance.
-            else if (type == "MusicVolume") audioData.MusicVolume = newValue; //UserSettings.Instance.
+            if (type == "FXVolume") saveData.audioData.FXVolume = newValue; //UserSettings.Instance.
+            else if (type == "VoicesVolume") saveData.audioData.VoicesVolume = newValue; //UserSettings.Instance.
+            else if (type == "MusicVolume") saveData.audioData.MusicVolume = newValue; //UserSettings.Instance.
 
             if (newValue > 0) //when log doesnt break and it technically still makes noise
             {
                 float convertedVolume = Mathf.Log10(newValue) * 20;
-                //this.audioData.GetType().GetProperty(type).SetValue(audioData, convertedVolume);
+                //this.saveData.audioData.GetType().GetProperty(type).SetValue(audioData, convertedVolume);
                 this.audioMixer.SetFloat(type, convertedVolume);
                 Debug.Log($"New volume: {convertedVolume} ");
             }
@@ -307,7 +307,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //save the settings as JSON to a file at a location TBD (dont do any data work here, should always save as-is)
     public void SaveUserSettingsToFile()
     {
-        string settingsJson = JsonUtility.ToJson(this);
+        string settingsJson = JsonUtility.ToJson(this.saveData);
         Debug.Log($"SaveUserSettingsToFile: {settingsJson}");
         DataManager.SaveJsonDataToFile(settingsFileName, settingsJson);
     }
@@ -336,9 +336,9 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             Debug.Log("<color=red>NO User Settings file!  Engage defaults</color>");
             InitializeDefaultData();
         }
-        Debug.Log($"loaded settings results [direct]: screenData=>{DataManager.ConvertObjToJson(this.screenData)}, " +
-            $" audiodata=>{DataManager.ConvertObjToJson(this.audioData)}, " +
-            $" controlsData=>{DataManager.ConvertObjToJson(this.controlsData)}");
+        Debug.Log($"loaded settings results [direct]: screenData=>{DataManager.ConvertObjToJson(this.saveData.screenData)}, " +
+            $" audiodata=>{DataManager.ConvertObjToJson(this.saveData.audioData)}, " +
+            $" controlsData=>{DataManager.ConvertObjToJson(this.saveData.controlsData)}");
 
         //Debug.Log($"<color=green>playerInputActions json: {playerInputActions.ToJson()} </color>");
         //Debug.Log($"loaded settings results [helper]: {DataManager.ConvertObjToJson(this)}");
@@ -349,10 +349,10 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     private void PushAllDataToActive(){
         Debug.Log("<color=blue>Pushing data to active</color>");
         UpdateResolution();
-        //SetVolume("MainVolume", this.audioData.MainVolume); //already done by unity since using audioManger
-        SetVolume("FXVolume", this.audioData.FXVolume);
-        SetVolume("MusicVolume", this.audioData.MusicVolume);
-        SetVolume("VoicesVolume", this.audioData.VoicesVolume);
+        //SetVolume("MainVolume", this.saveData.audioData.MainVolume); //already done by unity since using audioManger
+        SetVolume("FXVolume", this.saveData.audioData.FXVolume);
+        SetVolume("MusicVolume", this.saveData.audioData.MusicVolume);
+        SetVolume("VoicesVolume", this.saveData.audioData.VoicesVolume);
 
         //update the overridePath's of the controls 
 
@@ -363,16 +363,16 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     {
         Debug.Log("<color=blue>Init default data</color>");
         //todo: store initial states for this? 
-        this.screenData.isFullscreen = Screen.fullScreen;
-        this.screenData.isResizable = !Screen.fullScreen;
-        this.screenData.isVsynced = false;
-        this.screenData.refreshRate = Screen.currentResolution.refreshRate;
-        this.screenData.height = Screen.currentResolution.height;
-        this.screenData.width = Screen.currentResolution.width;
-        this.audioData.MainVolume = 50f;
-        this.audioData.FXVolume = 100f;
-        this.audioData.MusicVolume = 100f;
-        this.audioData.VoicesVolume = 100f;
+        this.saveData.screenData.isFullscreen = Screen.fullScreen;
+        this.saveData.screenData.isResizable = !Screen.fullScreen;
+        this.saveData.screenData.isVsynced = false;
+        this.saveData.screenData.refreshRate = Screen.currentResolution.refreshRate;
+        this.saveData.screenData.height = Screen.currentResolution.height;
+        this.saveData.screenData.width = Screen.currentResolution.width;
+        this.saveData.audioData.MainVolume = 50f;
+        this.saveData.audioData.FXVolume = 100f;
+        this.saveData.audioData.MusicVolume = 100f;
+        this.saveData.audioData.VoicesVolume = 100f;
 
         //no need to do default controls since theyre defined already, but we do want to remove the overrides
         //loop through the maps 

@@ -331,17 +331,17 @@ public class EscapeMenuScripts : MenuScripts
 
     public void OnUpdateVsync(bool newValue)
     {
-        UserSettings.Instance.screenData.isVsynced = newValue;
+        UserSettings.Instance.saveData.screenData.isVsynced = newValue;
         UserSettings.Instance.SaveUserSettingsToFile();
     }
     public void OnUpdateWindowed(bool newValue)
     {
-        UserSettings.Instance.screenData.isFullscreen = !newValue;
+        UserSettings.Instance.saveData.screenData.isFullscreen = !newValue;
         UserSettings.Instance.SaveUserSettingsToFile();
     }
     public void OnUpdateResizable(bool newValue)
     {
-        UserSettings.Instance.screenData.isResizable = newValue && !UserSettings.Instance.screenData.isFullscreen;
+        UserSettings.Instance.saveData.screenData.isResizable = newValue && !UserSettings.Instance.saveData.screenData.isFullscreen;
         UserSettings.Instance.SaveUserSettingsToFile();
     }
 
