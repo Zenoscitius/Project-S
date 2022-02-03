@@ -449,12 +449,12 @@ public class EscapeMenuScripts : MenuScripts
                 else if(actionBinding.isPartOfComposite )
                 {
                     //Debug.Log($"this binding is part of the a composite {actionBinding}");
-                    CreateUIControlBinder(instanceParentObject, action.GetBindingDisplayString() + actionBinding.name, actionBinding.ToDisplayString());
+                    CreateUIControlBinder(actionBinding, instanceParentObject, action.GetBindingDisplayString() + actionBinding.name, actionBinding.ToDisplayString());
                 }
             }
  
-               //todo:make a function 
-            
+            //todo:make a function 
+            /* 
             //create a controlbinder as a child of the scroller
             GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
 
@@ -483,9 +483,10 @@ public class EscapeMenuScripts : MenuScripts
             //TODO: add split for the directionals 
 
             //add the appropriate listener to the button 
-            buttonObject.GetComponent<Button>().onClick.AddListener( () => OnRebindClick(action.name) ); //delegate { OnRebindClick(action.name); } [both of these work]
-            
+            buttonObject.GetComponent<Button>().onClick.AddListener( () => OnRebindClick(action.name, inputBinding) ); //delegate { OnRebindClick(action.name); } [both of these work]
+       
             //currentInterval++;
+            */
         }
 
     }

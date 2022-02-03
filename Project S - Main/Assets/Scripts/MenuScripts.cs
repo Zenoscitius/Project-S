@@ -23,7 +23,7 @@ public class MenuScripts : AudioController
     //public delegate void ConfirmDelegateFxn(); // This defines what type of method you're going to call.
     //public ConfirmDelegateFxn m_methodToCall; // This is the variable holding the method you're going to cal
 
-    protected void CreateUIControlBinder(Transform instanceParentObject, string actionName, string buttonLabel )
+    protected void CreateUIControlBinder(InputBinding inputBinding, Transform instanceParentObject, string actionName, string buttonLabel )
     {
         //create a controlbinder as a child of the scroller
         GameObject controlBinder = Instantiate(this.controlBinderPrefab, instanceParentObject) as GameObject;
@@ -51,18 +51,18 @@ public class MenuScripts : AudioController
         //TODO: add split for the directionals 
 
         //add the appropriate listener to the button 
-        buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName)); //delegate { OnRebindClick(action.name); } [both of these work]
+        buttonObject.GetComponent<Button>().onClick.AddListener(() => OnRebindClick(actionName, inputBinding)); //delegate { OnRebindClick(action.name); } [both of these work]
     }
 
     //function that the rebind button triggers (it will have the string be statically in there, generated when the instances are made) 
     //TODO: allow rebindng of composite ones 
-    public void OnRebindClick(string actionName, int bindingIndex = 0)
+    public void OnRebindClick(string actionName, InputBinding inputBinding, int bindingIndex = 0)
     {
         Debug.Log($"Click on rebind of : {actionName}");
         InputAction targetAction = this.menuInputs.currentActionMap.FindAction(actionName);
         if (targetAction == null) targetAction = this.playerInputs.currentActionMap.FindAction(actionName);
         if (targetAction == null) Debug.LogWarning($"No action found for string name: {actionName}");
-        else UserSettings.Instance.RebindAction(targetAction);
+        else UserSettings.Instance.RebindAction(targetAction, inputBinding);
 
         UpdateBindingDisplay();
     }

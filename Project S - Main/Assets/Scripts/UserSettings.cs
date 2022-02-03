@@ -164,9 +164,11 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/HowDoI.html
     //https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.InputActionRebindingExtensions.RebindingOperation.html
     //https://docs.unity3d.com/Packages/com.unity.inputsystem@0.1/api/UnityEngine.Experimental.Input.InputActionRebindingExtensions.RebindingOperation.html
-    public void RebindAction(InputAction actionToRebind)
+    public void RebindAction(InputAction actionToRebind, InputBinding bindingToRebind, string inputControlPath = null)
     {
+        //InputAction actionToRebind = bindingToRebind.action;
         Debug.Log($"Attempting to rebind an action... {actionToRebind}");
+        Debug.Log($"with current binding... {bindingToRebind}");
         //var rebind = new InputActionRebindingExtensions.RebindingOperation()
         //.WithAction(myAction)
         //.WithBindingGroup("Gamepad")
@@ -176,41 +178,74 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         var rebindOperation = actionToRebind.PerformInteractiveRebinding()
             .WithControlsExcluding("<Pointer>/position") // Don"t bind to mouse positionS
             .WithControlsExcluding("<Pointer>/delta") // Don"t bind to mouse movement deltas
-            .WithCancelingThrough("<Keyboard>/escape")
-            .OnMatchWaitForAnother(0.1f)
-            .OnComplete(operation => {
+            .WithCancelingThrough("<Keyboard>/escape") // let escape cancel the binding...may want to change so always have to bind in case we let escape menu rebinding?
+            .OnMatchWaitForAnother(0.25f)
+            .WithBindingMask(bindingToRebind)
+            //.WithControlsHavingToMatchPath(inputControlPath) for restricting use to control paths
+            .OnComplete(operation =>
+            {
                 Debug.Log($"Rebound '{actionToRebind}' to '{operation.selectedControl}'");
                 operation.Dispose();//free memory otherwise it is a leak
 
                 //manage json data for it
                 foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
                 {
-                
+
                     //https://forum.unity.com/threads/how-to-save-input-action-bindings.799311/
 
                     string rebinds = actionMap.SaveBindingOverridesAsJson();
                     //actionMap.LoadBindingOverridesFromJson(rebinds);
-                    Debug.Log($"<color=yellow>BindingOverrides Json</color> {rebinds}");
+                    Debug.Log($"<color=yellow>Updated BindingOverrides Json</color> {rebinds}");
+                    /*{"bindings":[
+                     * {"action":"PlayerControls/Light Attack",
+                     * "id":"46a9318b-4b50-4cb2-9681-bfcee2c1c710",
+                     * "path":"<Mouse>/rightButton",
+                     * "interactions":"",
+                     * "processors":""},
+                     * {"action":"PlayerControls/Light Attack",
+                     * "id":"8b2e0902-f089-40d6-bda5-3b9a1b1fe81d",
+                     * "path":"<Mouse>/rightButton",
+                     * "interactions":"","processors":""}]}
+                     */
 
                     //loop through the actions of each map
                     foreach (InputAction action in actionMap.actions)
                     {
-             
+
                     }
 
                 }
-             
 
-            })
-            .Start();
+
+            });
+  
+            rebindOperation.Start();
     }
 
 
     //updates the internal datastructure for storing the controls information
-    private void updateSavedBindings()
+    //TODO
+    private void UpdateSavedBindings(bool triggerSaveOnChange = false)
     {
+        //manage json data for it
+        foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
+        {
 
-        //if (triggerSaveOnChange) SaveUserSettingsToFile();
+            //https://forum.unity.com/threads/how-to-save-input-action-bindings.799311/
+
+            string rebinds = actionMap.SaveBindingOverridesAsJson();
+            //actionMap.LoadBindingOverridesFromJson(rebinds);
+            Debug.Log($"<color=yellow>Updated BindingOverrides Json</color> {rebinds}");
+
+            //loop through the actions of each map
+            foreach (InputAction action in actionMap.actions)
+            {
+
+            }
+
+        }
+
+        if (triggerSaveOnChange || this.triggerSaveOnChange) SaveUserSettingsToFile();
     }
 
     //update to pass resolution
