@@ -183,6 +183,23 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
                 operation.Dispose();//free memory otherwise it is a leak
 
                 //manage json data for it
+                foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
+                {
+                
+                    //https://forum.unity.com/threads/how-to-save-input-action-bindings.799311/
+
+                    string rebinds = actionMap.SaveBindingOverridesAsJson();
+                    //actionMap.LoadBindingOverridesFromJson(rebinds);
+                    Debug.Log($"<color=yellow>BindingOverrides Json</color> {rebinds}");
+
+                    //loop through the actions of each map
+                    foreach (InputAction action in actionMap.actions)
+                    {
+             
+                    }
+
+                }
+             
 
             })
             .Start();
@@ -353,8 +370,37 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         SetVolume("FXVolume", this.saveData.audioData.FXVolume);
         SetVolume("MusicVolume", this.saveData.audioData.MusicVolume);
         SetVolume("VoicesVolume", this.saveData.audioData.VoicesVolume);
+  
 
         //update the overridePath's of the controls 
+        foreach (ControlPairing controlPairing in this.saveData.controlsData.controlPairingList) {
+
+            //get the action in the action map 
+
+            //controlPairing.inputActionName
+
+            //loop through the maps 
+            foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
+            {
+                //Debug.Log($"<color=yellow>actionMap</color> {DataManager.ConvertObjTozJson(actionMap)}");
+                //https://forum.unity.com/threads/how-to-save-input-action-bindings.799311/
+
+
+
+                //loop through the actions of each map
+                foreach (InputAction action in actionMap.actions)
+                {
+                    //string rebinds = action.SaveBindingOverridesAsJson();
+                    if (action.name == controlPairing.inputActionName)
+                    {
+                        //action.ApplyBindingOverride();
+                    }
+
+                }
+
+            }
+        }
+
 
     }
 
@@ -380,10 +426,13 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         {
             //Debug.Log($"<color=yellow>actionMap</color> {DataManager.ConvertObjToJson(actionMap)}");
 
+            actionMap.RemoveAllBindingOverrides();
+
             //loop through the actions of each map
             foreach (InputAction action in actionMap.actions)
             {
-                action.RemoveAllBindingOverrides();
+                //action.RemoveAllBindingOverrides();
+
                 //Debug.Log($"<color=yellow>input action </color> {DataManager.ConvertObjToJson(action)}");
                 //Debug.Log($"<color=yellow>input action </color> {(action)}");
                 //this.controlsData.controlPairingList.Add(new ControlPairing(action.name));
@@ -429,19 +478,20 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
         this.playerInputActions = Resources.Load<InputActionAsset>("PlayerActions");// as InputActionMap;
         Debug.Log($"<color=yellow>Assigned player control bindings?</color> {DataManager.ConvertObjToJson(playerInputActions)}");
 
-
-
+        //TODO
+        //playerInputActions.DontDestroyOnLoad = true;
 
         //loop through the maps 
-        foreach(InputActionMap actionMap in this.playerInputActions.actionMaps)
+        foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
         {
             //Debug.Log($"<color=yellow>actionMap</color> {DataManager.ConvertObjToJson(actionMap)}");
 
             //loop through the actions of each map
             foreach (InputAction action in actionMap.actions)
             {
+
                 //Debug.Log($"<color=yellow>input action </color> {DataManager.ConvertObjToJson(action)}");
-                //Debug.Log($"<color=yellow>input action </color> {(action)}");
+                Debug.Log($"<color=yellow>input action binding id</color> {(action.GetBindingIndex())}");
                 //this.controlsData.controlPairingList.Add(new ControlPairing(action.name));
             }
                 
