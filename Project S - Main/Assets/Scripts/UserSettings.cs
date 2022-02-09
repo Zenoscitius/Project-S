@@ -97,6 +97,7 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     public struct ControlsData
     {
         public List<ControlPairing> controlPairingList;
+        public string rebindJson; 
     }
 
 
@@ -188,35 +189,8 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
                 operation.Dispose();//free memory otherwise it is a leak
 
                 //manage json data for it
-                foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
-                {
-
-                    //https://forum.unity.com/threads/how-to-save-input-action-bindings.799311/
-
-                    string rebinds = actionMap.SaveBindingOverridesAsJson();
-                    //actionMap.LoadBindingOverridesFromJson(rebinds);
-                    Debug.Log($"<color=yellow>Updated BindingOverrides Json</color> {rebinds}");
-                    /*{"bindings":[
-                     * {"action":"PlayerControls/Light Attack",
-                     * "id":"46a9318b-4b50-4cb2-9681-bfcee2c1c710",
-                     * "path":"<Mouse>/rightButton",
-                     * "interactions":"",
-                     * "processors":""},
-                     * {"action":"PlayerControls/Light Attack",
-                     * "id":"8b2e0902-f089-40d6-bda5-3b9a1b1fe81d",
-                     * "path":"<Mouse>/rightButton",
-                     * "interactions":"","processors":""}]}
-                     */
-
-                    //loop through the actions of each map
-                    foreach (InputAction action in actionMap.actions)
-                    {
-
-                    }
-
-                }
-
-
+                UpdateSavedBindings();
+      
             });
   
             rebindOperation.Start();
@@ -234,9 +208,20 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
             //https://forum.unity.com/threads/how-to-save-input-action-bindings.799311/
 
             string rebinds = actionMap.SaveBindingOverridesAsJson();
+            this.saveData.controlsData.rebindJson = rebinds;
             //actionMap.LoadBindingOverridesFromJson(rebinds);
             Debug.Log($"<color=yellow>Updated BindingOverrides Json</color> {rebinds}");
-
+            /*{"bindings":[
+                * {"action":"PlayerControls/Light Attack",
+                * "id":"46a9318b-4b50-4cb2-9681-bfcee2c1c710",
+                * "path":"<Mouse>/rightButton",
+                * "interactions":"",
+                * "processors":""},
+                * {"action":"PlayerControls/Light Attack",
+                * "id":"8b2e0902-f089-40d6-bda5-3b9a1b1fe81d",
+                * "path":"<Mouse>/rightButton",
+                * "interactions":"","processors":""}]}
+                */
             //loop through the actions of each map
             foreach (InputAction action in actionMap.actions)
             {

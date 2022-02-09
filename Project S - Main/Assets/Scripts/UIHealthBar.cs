@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /*UI Portion of the Healthbar. IS NOT the data source.*/
-public class UIHealthBar : ScriptableObject
+public class UIHealthBar : MonoBehaviour
 {
     //public static UIHealthBar instance { get; private set; }
     //void Awake() { //instance = this; }

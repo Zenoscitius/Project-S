@@ -40,7 +40,7 @@ public class Combatant : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         currentHealth = maxHealth;
 
-        UIHealthBar = new UIHealthBar(healthBarMask, false);
+        UIHealthBar = gameObject.AddComponent<UIHealthBar>() as UIHealthBar;  new UIHealthBar(healthBarMask, false);
     }
 
     //https://learn.unity.com/tutorial/coroutines?uv=2019.3&projectId=5c88f2c1edbc2a001f873ea5
