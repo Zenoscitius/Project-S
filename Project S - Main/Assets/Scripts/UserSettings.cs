@@ -425,39 +425,47 @@ public class UserSettings : MonoBehaviour, ISerializationCallbackReceiver  //can
     }
 
     //sets all default data
-    private void InitializeDefaultData()
+    public void InitializeDefaultData(string type = "all")
     {
-        Debug.Log("<color=blue>Init default data</color>");
+        Debug.Log($"<color=blue>Init default data: {type} </color>");
         //todo: store initial states for this? 
-        this.saveData.screenData.isFullscreen = Screen.fullScreen;
-        this.saveData.screenData.isResizable = !Screen.fullScreen;
-        this.saveData.screenData.isVsynced = false;
-        this.saveData.screenData.refreshRate = Screen.currentResolution.refreshRate;
-        this.saveData.screenData.height = Screen.currentResolution.height;
-        this.saveData.screenData.width = Screen.currentResolution.width;
-        this.saveData.audioData.MainVolume = 50f;
-        this.saveData.audioData.FXVolume = 100f;
-        this.saveData.audioData.MusicVolume = 100f;
-        this.saveData.audioData.VoicesVolume = 100f;
-
-        //no need to do default controls since theyre defined already, but we do want to remove the overrides
-        //loop through the maps 
-        foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
+        if (type == "all" || type == "screen")
         {
-            //Debug.Log($"<color=yellow>actionMap</color> {DataManager.ConvertObjToJson(actionMap)}");
-
-            actionMap.RemoveAllBindingOverrides();
-
-            //loop through the actions of each map
-            foreach (InputAction action in actionMap.actions)
+            this.saveData.screenData.isFullscreen = Screen.fullScreen;
+            this.saveData.screenData.isResizable = !Screen.fullScreen;
+            this.saveData.screenData.isVsynced = false;
+            this.saveData.screenData.refreshRate = Screen.currentResolution.refreshRate;
+            this.saveData.screenData.height = Screen.currentResolution.height;
+            this.saveData.screenData.width = Screen.currentResolution.width;
+        }
+        if (type == "all" || type == "audio")
+        {
+            this.saveData.audioData.MainVolume = 50f;
+            this.saveData.audioData.FXVolume = 100f;
+            this.saveData.audioData.MusicVolume = 100f;
+            this.saveData.audioData.VoicesVolume = 100f;
+        }
+        if (type == "all" || type == "controls")
+        { 
+            //no need to do default controls since theyre defined already, but we do want to remove the overrides
+            //loop through the maps 
+            foreach (InputActionMap actionMap in this.playerInputActions.actionMaps)
             {
-                //action.RemoveAllBindingOverrides();
+                //Debug.Log($"<color=yellow>actionMap</color> {DataManager.ConvertObjToJson(actionMap)}");
 
-                //Debug.Log($"<color=yellow>input action </color> {DataManager.ConvertObjToJson(action)}");
-                //Debug.Log($"<color=yellow>input action </color> {(action)}");
-                //this.controlsData.controlPairingList.Add(new ControlPairing(action.name));
+                actionMap.RemoveAllBindingOverrides();
+
+                //loop through the actions of each map
+                foreach (InputAction action in actionMap.actions)
+                {
+                    //action.RemoveAllBindingOverrides();
+
+                    //Debug.Log($"<color=yellow>input action </color> {DataManager.ConvertObjToJson(action)}");
+                    //Debug.Log($"<color=yellow>input action </color> {(action)}");
+                    //this.controlsData.controlPairingList.Add(new ControlPairing(action.name));
+                }
+
             }
-
         }
 
         //push the datas to active usage

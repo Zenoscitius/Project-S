@@ -213,6 +213,60 @@ public class MenuScripts : AudioController
         //}
     }
 
+
+    public virtual void OnResetDefaults(string type)
+    {
+        System.Action confirmFunction = (() =>
+        {
+            UserSettings.Instance.InitializeDefaultData(type);
+        });
+
+        //revert the resolution [shouldnt need to save]
+        System.Action cancelFunction = (() =>
+        {
+            Debug.Log("cancel pressed");
+        });
+        ActionChoicePopup("Are you sure you want to revert these settings to their defaults?", confirmFunction, cancelFunction);
+  
+    }
+
+
+    public virtual void OnUpdateVsync(bool newValue)
+    {
+        UserSettings.Instance.saveData.screenData.isVsynced = newValue;
+        UserSettings.Instance.SaveUserSettingsToFile();
+    }
+    public virtual void OnUpdateWindowed(bool newValue)
+    {
+        UserSettings.Instance.saveData.screenData.isFullscreen = !newValue;
+        UserSettings.Instance.SaveUserSettingsToFile();
+    }
+    public virtual void OnUpdateResizable(bool newValue)
+    {
+        UserSettings.Instance.saveData.screenData.isResizable = newValue && !UserSettings.Instance.saveData.screenData.isFullscreen;
+        UserSettings.Instance.SaveUserSettingsToFile();
+    }
+
+    public virtual void UpdateBooleanOption(bool newValue)
+    {
+
+    }
+
+    //https://hextantstudios.com/unity-custom-settings/
+    //https://support.unity.com/hc/en-us/articles/115000177803-How-can-I-modify-Project-Settings-via-scripting-
+
+    public virtual void OnUpdateMainVolume(float newValue)
+    {
+        //TODO: consider having this operate on the mixer instead of the main project volume?  project volume is probably better due to core integration or something
+        UserSettings.Instance.SetVolume("main", newValue, true);
+    }
+    public virtual void OnUpdateFXVolume(float newValue) { UserSettings.Instance.SetVolume("FXVolume", newValue, true); }
+    public virtual void OnUpdateMusicVolume(float newValue) { UserSettings.Instance.SetVolume("MusicVolume", newValue, true); }
+    public virtual void OnUpdateVoicesVolume(float newValue) { UserSettings.Instance.SetVolume("VoicesVolume", newValue, true); }
+
+    //https://api.unity.com/v1/oauth2/authorize?client_id=unity_learn&locale=en_US&redirect_uri=https%3A%2F%2Flearn.unity.com%2Fauth%2Fcallback%3Fredirect_to%3D%252Ftutorial%252Faudio-mixing%253Fuv%253D2020.1%2526projectId%253D5f4e4ee3edbc2a001f1211df&response_type=code&scope=identity+offline&state=f25e033d-349e-4a36-a483-5d5af2597eb7
+    //https://gamedevbeginner.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
+
     // Start is called before the first frame update
     protected virtual void Start()
     {
